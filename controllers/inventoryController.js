@@ -62,19 +62,24 @@ exports.createInventory = async (req, res) => {
   }
 };
 
+
 // Low Stock 
 exports.getLowStockItems = async (req, res) => {
   try {
-    const threshold = parseInt(req.query.threshold) || 5;
+    // Set a default threshold if not provided or invalid
+    const threshold = isNaN(parseInt(req.query.threshold)) ? 5 : parseInt(req.query.threshold);
+
+    // Fetch low stock items with product and warehouse data
     const items = await Inventory.find({ stock: { $lt: threshold } })
-      .populate("product_id")
-      .populate("warehouse_id");
+      .populate("product_id", "name") // Only populate the name field of the product
+      .populate("warehouse_id", "location"); // Only populate the location field of the warehouse
 
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // Update Inventory
 exports.updateInventory = async (req, res) => {

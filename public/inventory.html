@@ -14,6 +14,25 @@
 
   <main>
     <section class="form-section">
+      <h2>Search Inventory</h2>
+
+      <form id="searchForm">
+        <label for="searchType">Search By:</label>
+        <select id="searchType" name="searchType" required>
+          <option value="">--Select Search Type--</option>
+          <option value="product_name">Product Name</option>
+          <option value="product_category">Category</option>
+          <option value="product_supplier">Supplier</option>
+          <option value="warehouse_name">Warehouse Name</option>
+        </select>
+
+        <input type="text" id="searchField" name="searchField" placeholder="Enter search value" style="display:none;" required />
+        <button type="submit" style="display:none;">Search</button>
+      </form>
+      <ul id="searchResults"></ul>
+    </section>
+
+    <section class="form-section">
       <h2>Add Inventory Entry</h2>
       <form id="addInventoryForm">
         <label>Product:</label>
@@ -37,6 +56,107 @@
   </main>
 
   <script>
+    // Update search field visibility based on the selected search type
+    document.getElementById("searchType").addEventListener("change", function(e) {
+      const searchType = e.target.value;
+      const searchField = document.getElementById("searchField");
+      const searchButton = document.querySelector("form button");
+
+      if (searchType) {
+        searchField.style.display = "inline";
+        searchButton.style.display = "inline";
+        searchField.placeholder = `Enter ${searchType}`;
+      } else {
+        searchField.style.display = "none";
+        searchButton.style.display = "none";
+      }
+    });
+
+    // Function to fetch results for Product Name search
+    async function fetchByProductName(productName) {
+      const res = await fetch(`http://localhost:5000/api/inventory/product-name/${productName}`);
+      const data = await res.json();
+      return data;
+    }
+
+    // Function to fetch results for Product Category search
+    async function fetchByCategory(category) {
+      const res = await fetch(`http://localhost:5000/api/inventory/product-category/${category}`);
+      const data = await res.json();
+      return data;
+    }
+
+    // Function to fetch results for Product Supplier search
+    async function fetchBySupplier(supplier) {
+      const res = await fetch(`http://localhost:5000/api/inventory/product-supplier/${supplier}`);
+      const data = await res.json();
+      return data;
+    }
+
+    // Function to fetch results for Warehouse Name search
+    async function fetchByWarehouse(warehouse) {
+      const res = await fetch(`http://localhost:5000/api/inventory/warehouse-name/${warehouse}`);
+      const data = await res.json();
+      return data;
+    }
+
+    // Delete inventory item
+    async function deleteInventory(id) {
+      const res = await fetch(`http://localhost:5000/api/inventory/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        alert("Item deleted successfully!");
+        // Remove the item from the displayed list
+        document.querySelector(`#result-${id}`).remove();
+      } else {
+        alert("Failed to delete item.");
+      }
+    }
+
+    // Search form submit handler
+    document.getElementById("searchForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const searchType = document.getElementById("searchType").value;
+      const searchField = document.getElementById("searchField").value.trim();
+
+      if (!searchType || !searchField) return;
+
+      let results = [];
+      switch (searchType) {
+        case "product_name":
+          results = await fetchByProductName(searchField);
+          break;
+        case "product_category":
+          results = await fetchByCategory(searchField);
+          break;
+        case "product_supplier":
+          results = await fetchBySupplier(searchField);
+          break;
+        case "warehouse_name":
+          results = await fetchByWarehouse(searchField);
+          break;
+      }
+
+      const resultsList = document.getElementById("searchResults");
+      resultsList.innerHTML = results.map(item => {
+        const productName = item.product_id ? item.product_id.name : "N/A";
+        const stock = item.stock || "N/A";
+        const warehouseLocation = item.warehouse_id ? item.warehouse_id.location : "N/A";
+        return `
+          <li id="result-${item._id}">
+            <strong>Product:</strong> ${productName} <br>
+            <strong>Stock:</strong> ${stock} <br>
+            <strong>Warehouse:</strong> ${warehouseLocation} <br>
+            <button onclick="deleteInventory('${item._id}')">Delete</button>
+          </li>
+        `;
+      }).join('');
+    });
+
+    // Fetch products and warehouses for inventory addition
     async function fetchProducts() {
       const res = await fetch("http://localhost:5000/api/products");
       const data = await res.json();
@@ -63,48 +183,39 @@
       });
     }
 
+    // Fetch low stock items
     async function fetchLowStock() {
-      const res = await fetch("http://localhost:5000/api/inventory/low-stock");
-      const data = await res.json();
-      const list = document.getElementById("lowStockList");
-      list.innerHTML = "";
-      data.forEach(i => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <strong>${i.product_id.name}</strong><br>
-          Stock: ${i.stock} | Warehouse: ${i.warehouse_id.location}<br>
-          <button onclick="deleteInventory('${i._id}')">Delete</button>
-        `;
-        list.appendChild(li);
-      });
+      try {
+        const res = await fetch("http://localhost:5000/api/inventory/low-stock");
+        
+        if (!res.ok) {
+          throw new Error("Failed to fetch low stock items.");
+        }
+
+        const data = await res.json();
+        const list = document.getElementById("lowStockList");
+        list.innerHTML = "";
+
+        if (data.length === 0) {
+          list.innerHTML = "<li>No low stock items found.</li>";
+          return;
+        }
+
+        data.forEach(i => {
+          const li = document.createElement("li");
+          li.innerHTML = ` 
+            <strong>${i.product_id.name}</strong><br>
+            Stock: ${i.stock} | Warehouse: ${i.warehouse_id.location}<br>
+            <button onclick="deleteInventory('${i._id}')">Delete</button>
+          `;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    async function deleteInventory(id) {
-      if (!confirm("Delete this inventory entry?")) return;
-      const res = await fetch(`http://localhost:5000/api/inventory/${id}`, {
-        method: "DELETE"
-      });
-      const result = await res.json();
-      alert(result.message || "Inventory entry deleted.");
-      fetchLowStock();
-    }
-
-    document.getElementById("addInventoryForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const body = Object.fromEntries(formData.entries());
-
-      const res = await fetch("http://localhost:5000/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      await res.json();
-      alert("Inventory added!");
-      this.reset();
-    });
-
+    // Call the fetch functions to populate products and warehouses
     fetchProducts();
     fetchWarehouses();
   </script>

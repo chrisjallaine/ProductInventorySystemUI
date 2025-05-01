@@ -19,7 +19,7 @@ const {
   getInventoryByProductLocation,
   moveInventory,
   diminishInventory,
-  getAllInventories // ← add this line
+  getAllInventories
 } = require("../controllers/inventoryController");
 
 const router = express.Router();
