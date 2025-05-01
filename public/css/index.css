@@ -1,16 +1,17 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Poppins', sans-serif;
   background: #f4f6f9;
   color: #333;
 }
 
 header {
-  background: #273c75;
-  color: white;
+  background: #ffffff;
+  color: rgb(0, 0, 0);
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
 }
 
@@ -46,7 +47,7 @@ h1 {
 
 .nav-cards li a {
   text-decoration: none;
-  color: #273c75;
+  color: #000000;
   display: block;
   padding: 1rem;
   text-align: center;
@@ -70,7 +71,7 @@ h1 {
 .summary {
   flex: 1 1 300px;
   background: #fff;
-  border-left: 5px solid #44bd32;
+  border-bottom: 5px solid #000000;
   padding: 1rem;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
