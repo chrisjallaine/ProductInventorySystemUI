@@ -76,3 +76,14 @@ exports.getWarehousesByCategory = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Get all warehouses
+exports.getAllWarehouses = async (req, res) => {
+  try {
+    const warehouses = await Warehouse.find();
+    res.json(warehouses);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

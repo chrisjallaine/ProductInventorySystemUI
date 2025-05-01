@@ -1,4 +1,5 @@
 const express = require("express");
+
 const {
   createInventory,
   getLowStockItems,
@@ -17,7 +18,8 @@ const {
   getInventoryByProductSupplier,
   getInventoryByProductLocation,
   moveInventory,
-  diminishInventory
+  diminishInventory,
+  getAllInventories // ← add this line
 } = require("../controllers/inventoryController");
 
 const router = express.Router();
@@ -40,6 +42,7 @@ router.get("/product-supplier/:supplierId", getInventoryByProductSupplier);
 router.get("/product-location/:locationId", getInventoryByProductLocation);
 router.post("/move", moveInventory);
 router.post("/diminish", diminishInventory);
+router.get("/", getAllInventories);
 
 
 module.exports = router;
