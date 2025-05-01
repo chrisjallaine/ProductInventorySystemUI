@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Suppliers - Whiplash</title>
+  <link rel="stylesheet" href="css/suppliers.css" />
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Dashboard</a>
+    <h1>Supplier Management</h1>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Add Supplier</h2>
+      <form id="addSupplierForm">
+        <input type="text" name="name" placeholder="Supplier Name" required />
+        <input type="text" name="contact_info" placeholder="Contact Info" />
+        <input type="email" name="email" placeholder="Email" />
+        <input type="text" name="address" placeholder="Address" />
+        <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
+        <button type="submit">Add Supplier</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h2>All Suppliers</h2>
+      <button onclick="fetchSuppliers()">Refresh List</button>
+      <ul id="supplierList"></ul>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("addSupplierForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const body = Object.fromEntries(formData.entries());
+
+      const res = await fetch("http://localhost:5000/api/suppliers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      await res.json();
+      alert("Supplier added!");
+      this.reset();
+      fetchSuppliers();
+    });
+
+    async function deleteSupplier(id) {
+      if (!confirm("Delete this supplier?")) return;
+      const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      alert(result.message || "Supplier deleted.");
+      fetchSuppliers();
+    }
+
+    async function fetchSuppliers() {
+      const res = await fetch("http://localhost:5000/api/suppliers");
+      const data = await res.json();
+      const list = document.getElementById("supplierList");
+      list.innerHTML = "";
+      data.forEach(s => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${s.name}</strong><br>
+          Email: ${s.email || 'N/A'}<br>
+          Rating: ${s.rating || 'N/A'}<br>
+          ID: ${s._id}
+          <button onclick="deleteSupplier('${s._id}')">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    fetchSuppliers();
+  </script>
+</body>
+</html>

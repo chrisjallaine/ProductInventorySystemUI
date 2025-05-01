@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Inventory - Whiplash</title>
+  <link rel="stylesheet" href="css/inventory.css" />
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Dashboard</a>
+    <h1>Inventory Management</h1>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Add Inventory Entry</h2>
+      <form id="addInventoryForm">
+        <label>Product:</label>
+        <select name="product_id" id="productSelect" required></select>
+
+        <label>Warehouse:</label>
+        <select name="warehouse_id" id="warehouseSelect" required></select>
+
+        <input type="number" name="stock" placeholder="Stock" required />
+        <input type="number" name="unitPrice" placeholder="Unit Price" required />
+        <input type="date" name="expiryDate" />
+        <button type="submit">Add Inventory</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h2>Low Stock Items</h2>
+      <button onclick="fetchLowStock()">Check Low Stock</button>
+      <ul id="lowStockList"></ul>
+    </section>
+  </main>
+
+  <script>
+    async function fetchProducts() {
+      const res = await fetch("http://localhost:5000/api/products");
+      const data = await res.json();
+      const select = document.getElementById("productSelect");
+      select.innerHTML = "";
+      data.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p._id;
+        option.textContent = p.name;
+        select.appendChild(option);
+      });
+    }
+
+    async function fetchWarehouses() {
+      const res = await fetch("http://localhost:5000/api/warehouses");
+      const data = await res.json();
+      const select = document.getElementById("warehouseSelect");
+      select.innerHTML = "";
+      data.forEach(w => {
+        const option = document.createElement("option");
+        option.value = w._id;
+        option.textContent = w.location;
+        select.appendChild(option);
+      });
+    }
+
+    async function fetchLowStock() {
+      const res = await fetch("http://localhost:5000/api/inventory/low-stock");
+      const data = await res.json();
+      const list = document.getElementById("lowStockList");
+      list.innerHTML = "";
+      data.forEach(i => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${i.product_id.name}</strong><br>
+          Stock: ${i.stock} | Warehouse: ${i.warehouse_id.location}<br>
+          <button onclick="deleteInventory('${i._id}')">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function deleteInventory(id) {
+      if (!confirm("Delete this inventory entry?")) return;
+      const res = await fetch(`http://localhost:5000/api/inventory/${id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      alert(result.message || "Inventory entry deleted.");
+      fetchLowStock();
+    }
+
+    document.getElementById("addInventoryForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const body = Object.fromEntries(formData.entries());
+
+      const res = await fetch("http://localhost:5000/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      await res.json();
+      alert("Inventory added!");
+      this.reset();
+    });
+
+    fetchProducts();
+    fetchWarehouses();
+  </script>
+</body>
+</html>

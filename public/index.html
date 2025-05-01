@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Whiplash Inventory Dashboard</title>
+  <link rel="stylesheet" href="css/index.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+  <header>
+    <img src="https://i.ebayimg.com/images/g/sK8AAOSwWNRm-4um/s-l400.jpg" alt="Whiplash Logo" class="logo" />
+    <h1>Whiplash Inventory System</h1>
+  </header>
+
+  <main class="dashboard">
+    <ul class="nav-cards">
+      <li><a href="products.html"><i class="fas fa-box"></i><div><h2>Products</h2><p>Manage product listings.</p></div></a></li>
+      <li><a href="categories.html"><i class="fas fa-tags"></i><div><h2>Categories</h2><p>Organize by type.</p></div></a></li>
+      <li><a href="inventory.html"><i class="fas fa-warehouse"></i><div><h2>Inventory</h2><p>Track stock levels.</p></div></a></li>
+      <li><a href="suppliers.html"><i class="fas fa-truck"></i><div><h2>Suppliers</h2><p>Vendor details.</p></div></a></li>
+      <li><a href="warehouses.html"><i class="fas fa-building"></i><div><h2>Warehouses</h2><p>Manage locations.</p></div></a></li>
+    </ul>
+
+    <section class="summary-cards">
+      <div class="summary" id="highestStockCard">
+        <h3>Highest Stock</h3>
+        <p>Loading...</p>
+      </div>
+      <div class="summary" id="lowestStockCard">
+        <h3>Lowest Stock</h3>
+        <p>Loading...</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function loadSummaryCards() {
+      const res = await fetch("http://localhost:5000/api/inventory");
+      const data = await res.json();
+
+      if (!data || !data.length) return;
+
+      let highest = data[0], lowest = data[0];
+
+      data.forEach(item => {
+        if (item.stock > highest.stock) highest = item;
+        if (item.stock < lowest.stock) lowest = item;
+      });
+
+      document.getElementById("highestStockCard").innerHTML = `
+        <h3>Highest Stock</h3>
+        <p><strong>${highest.product_id.name}</strong><br>ID: ${highest.product_id._id}<br>Category: ${highest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${highest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${highest.stock}</p>
+      `;
+
+      document.getElementById("lowestStockCard").innerHTML = `
+        <h3>Lowest Stock</h3>
+        <p><strong>${lowest.product_id.name}</strong><br>ID: ${lowest.product_id._id}<br>Category: ${lowest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${lowest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${lowest.stock}</p>
+      `;
+    }
+
+    loadSummaryCards();
+  </script>
+</body>
+</html>

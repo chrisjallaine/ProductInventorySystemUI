@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Warehouses - Whiplash</title>
+  <link rel="stylesheet" href="css/warehouses.css" />
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Dashboard</a>
+    <h1>Warehouse Management</h1>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Add Warehouse</h2>
+      <form id="addWarehouseForm">
+        <input type="text" name="location" placeholder="Location" required />
+        <input type="number" name="capacity" placeholder="Capacity" required />
+        <button type="submit">Add Warehouse</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h2>All Warehouses</h2>
+      <button onclick="fetchWarehouses()">Refresh List</button>
+      <ul id="warehouseList"></ul>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("addWarehouseForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const body = Object.fromEntries(formData.entries());
+
+      const res = await fetch("http://localhost:5000/api/warehouses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      await res.json();
+      alert("Warehouse added!");
+      this.reset();
+      fetchWarehouses();
+    });
+
+    async function deleteWarehouse(id) {
+      if (!confirm("Delete this warehouse?")) return;
+      const res = await fetch(`http://localhost:5000/api/warehouses/${id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      alert(result.message || "Warehouse deleted.");
+      fetchWarehouses();
+    }
+
+    async function fetchUtilization(id, element) {
+      const res = await fetch(`http://localhost:5000/api/warehouses/${id}/utilization`);
+      const data = await res.json();
+      element.innerText = `Utilization: ${data.utilization}`;
+    }
+
+    async function fetchWarehouses() {
+      const res = await fetch("http://localhost:5000/api/warehouses");
+      const data = await res.json();
+      const list = document.getElementById("warehouseList");
+      list.innerHTML = "";
+      data.forEach(w => {
+        const li = document.createElement("li");
+        const utilSpan = document.createElement("span");
+        utilSpan.innerText = "Checking...";
+        fetchUtilization(w._id, utilSpan);
+        li.innerHTML = `
+          <strong>${w.location}</strong><br>
+          Capacity: ${w.capacity}<br>
+          ID: ${w._id}<br>
+        `;
+        li.appendChild(utilSpan);
+        const delBtn = document.createElement("button");
+        delBtn.innerText = "Delete";
+        delBtn.onclick = () => deleteWarehouse(w._id);
+        li.appendChild(delBtn);
+        list.appendChild(li);
+      });
+    }
+
+    fetchWarehouses();
+  </script>
+</body>
+</html>

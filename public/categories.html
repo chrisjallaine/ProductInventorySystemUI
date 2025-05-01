@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Categories - Whiplash</title>
+  <link rel="stylesheet" href="css/categories.css" />
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Dashboard</a>
+    <h1>Category Management</h1>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Add Category</h2>
+      <form id="addCategoryForm">
+        <input type="text" name="name" placeholder="Category Name" required />
+        <button type="submit">Add Category</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h2>All Categories</h2>
+      <button onclick="fetchCategories()">Refresh List</button>
+      <ul id="categoryList"></ul>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("addCategoryForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const body = Object.fromEntries(formData.entries());
+
+      const res = await fetch("http://localhost:5000/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      await res.json();
+      alert("Category added!");
+      this.reset();
+      fetchCategories();
+    });
+
+    async function deleteCategory(id) {
+      if (!confirm("Delete this category?")) return;
+      const res = await fetch(`http://localhost:5000/api/categories/${id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      alert(result.message || "Category deleted.");
+      fetchCategories();
+    }
+
+    async function fetchCategories() {
+      const res = await fetch("http://localhost:5000/api/categories");
+      const data = await res.json();
+      const list = document.getElementById("categoryList");
+      list.innerHTML = "";
+      data.forEach(c => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${c.name}</strong> — ID: ${c._id} — Products: ${c.productCount || 0}
+          <button onclick="deleteCategory('${c._id}')">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    fetchCategories();
+  </script>
+</body>
+</html>
