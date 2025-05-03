@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Warehouses - Whiplash</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Warehouse Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/warehouses.css" />
 </head>
 <body>
@@ -14,6 +14,21 @@
   </header>
 
   <main>
+    <section class="form-section">
+      <h2>Search Warehouses</h2>
+      <form id="searchForm">
+        <select id="searchType" required>
+          <option value="" disabled selected hidden>Search Type</option>
+          <option value="product">By Product Name</option>
+          <option value="supplier">By Supplier Name</option>
+          <option value="category">By Category Name</option>
+        </select>
+        <input type="text" id="searchValue" placeholder="Enter value..." required />
+        <button type="submit">Search</button>
+      </form>
+      <ul id="searchResults"></ul>
+    </section>
+
     <section class="form-section">
       <h2>Add Warehouse</h2>
       <form id="addWarehouseForm">
@@ -31,62 +46,75 @@
   </main>
 
   <script>
-    document.getElementById("addWarehouseForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const body = Object.fromEntries(formData.entries());
+    const $ = id => document.getElementById(id);
 
-      const res = await fetch("http://localhost:5000/api/warehouses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    $('addWarehouseForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
+      await fetch('http://localhost:5000/api/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-
-      await res.json();
-      alert("Warehouse added!");
-      this.reset();
+      alert('Warehouse added!');
+      e.target.reset();
       fetchWarehouses();
     });
 
-    async function deleteWarehouse(id) {
-      if (!confirm("Delete this warehouse?")) return;
-      const res = await fetch(`http://localhost:5000/api/warehouses/${id}`, {
-        method: "DELETE"
+    const fetchWarehouses = async () => {
+      const res = await fetch('http://localhost:5000/api/warehouses');
+      const data = await res.json();
+      renderWarehouseList(data, 'warehouseList');
+    };
+
+    const deleteWarehouse = async id => {
+      if (!confirm('Delete this warehouse?')) return;
+      await fetch(`http://localhost:5000/api/warehouses/${id}`, {
+        method: 'DELETE'
       });
-      const result = await res.json();
-      alert(result.message || "Warehouse deleted.");
+      alert('Deleted.');
       fetchWarehouses();
-    }
+    };
 
-    async function fetchUtilization(id, element) {
-      const res = await fetch(`http://localhost:5000/api/warehouses/${id}/utilization`);
-      const data = await res.json();
-      element.innerText = `Utilization: ${data.utilization}`;
-    }
-
-    async function fetchWarehouses() {
-      const res = await fetch("http://localhost:5000/api/warehouses");
-      const data = await res.json();
-      const list = document.getElementById("warehouseList");
-      list.innerHTML = "";
-      data.forEach(w => {
-        const li = document.createElement("li");
-        const utilSpan = document.createElement("span");
-        utilSpan.innerText = "Checking...";
-        fetchUtilization(w._id, utilSpan);
-        li.innerHTML = `
-          <strong>${w.location}</strong><br>
-          Capacity: ${w.capacity}<br>
-          ID: ${w._id}<br>
-        `;
-        li.appendChild(utilSpan);
-        const delBtn = document.createElement("button");
-        delBtn.innerText = "Delete";
-        delBtn.onclick = () => deleteWarehouse(w._id);
-        li.appendChild(delBtn);
-        list.appendChild(li);
+    const updateWarehousePrompt = async id => {
+      const capacity = prompt('Enter new capacity:');
+      if (!capacity || isNaN(capacity)) return alert('Invalid capacity.');
+      await fetch(`http://localhost:5000/api/warehouses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ capacity: Number(capacity) })
       });
-    }
+      fetchWarehouses();
+    };
+
+    const renderWarehouseList = (data, targetId) => {
+      const ul = $(targetId);
+      ul.innerHTML = data.map(w => `
+        <li class="card">
+          <div class="card-content">
+            <div><strong>Location:</strong> ${w.location}</div>
+            <div><strong>Capacity:</strong> ${w.capacity}</div>
+            <div><strong>ID:</strong> ${w._id}</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn blue" onclick="updateWarehousePrompt('${w._id}')">Update</button>
+            <button class="btn red" onclick="deleteWarehouse('${w._id}')">Delete</button>
+          </div>
+        </li>
+      `).join('');
+    };
+
+    $('searchForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const type = $('searchType').value;
+      const value = $('searchValue').value.trim();
+      if (!type || !value) return;
+      const url = `http://localhost:5000/api/warehouses/${type}?q=${encodeURIComponent(value)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      renderWarehouseList(Array.isArray(data) ? data : [data], 'searchResults');
+    });
 
     fetchWarehouses();
   </script>

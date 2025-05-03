@@ -1,29 +1,35 @@
 const express = require("express");
 const {
-  getAllCategories,
-  getCategoryById,
-  getCategoryByName,
-  getCategoryBySKU,
   createCategory,
-  updateCategory,
+  getAllCategories,
+  getCategoryByName,
   deleteCategory,
-  getProductsInCategory,
-  getCategoryStock,
+  updateCategoryName,
+  getCategorySummary,
+  getAllCategorySummaries
 } = require("../controllers/categoryController");
 
 const router = express.Router();
 
-// Basic CRUD
-router.get("/", getAllCategories);
-router.get("/name/:name", getCategoryByName);
-router.get("/sku/:sku", getCategoryBySKU);
-router.get("/:id", getCategoryById);
+// 📦 Create Category
 router.post("/", createCategory);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
-router.get("/:id/products", getProductsInCategory);
 
-// Analytics route
-router.get("/:id/stock", getCategoryStock);
+// 📋 Get All Categories (no products)
+router.get("/", getAllCategories);
+
+// 📊 Get All Categories with Products and Count
+router.get("/summaries", getAllCategorySummaries);
+
+// 🔍 Get Single Category by Name (with products)
+router.get("/name/:name", getCategoryByName);
+
+// ✏️ Update Category Name
+router.put("/:id/name", updateCategoryName);
+
+// 🗑️ Delete Category
+router.delete("/:id", deleteCategory);
+
+// 📊 Get Single Category Summary
+router.get("/:id/summary", getCategorySummary);
 
 module.exports = router;

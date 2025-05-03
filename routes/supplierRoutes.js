@@ -5,26 +5,33 @@ const {
   getSupplierById,
   updateSupplier,
   deleteSupplier,
-  logDelivery,
-  getSupplierByProduct,
+  getSuppliersByProduct,
   getSuppliersByWarehouse,
-  getSuppliersByCategory
+  getSupplierByName
 } = require("../controllers/supplierController");
 
 const router = express.Router();
 
+// ➕ Create Supplier
 router.post("/", createSupplier);
+
+// 🔍 Read
 router.get("/", getAllSuppliers);
 router.get("/:id", getSupplierById);
+
+// ✏️ Update Supplier
 router.put("/:id", updateSupplier);
+
+// 🗑️ Delete Supplier
 router.delete("/:id", deleteSupplier);
 
-// Delivery
-router.post("/:supplierId/delivery", logDelivery);
+// 📦 Get all suppliers of a specific product
+router.get("/product/:productId", getSuppliersByProduct);
 
-// Relational Queries
-router.get("/product/:productId", getSupplierByProduct);
+// 🏢 Get all suppliers supplying to a warehouse
 router.get("/warehouse/:warehouseId", getSuppliersByWarehouse);
-router.get("/category/:categoryId", getSuppliersByCategory);
+
+// 🔍 Get supplier by name
+router.get("/name/:name", getSupplierByName);
 
 module.exports = router;

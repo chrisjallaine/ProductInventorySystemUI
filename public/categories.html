@@ -3,74 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Categories - Whiplash</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Inventory Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/categories.css" />
 </head>
 <body>
   <header>
-    <a href="index.html" class="back-link">← Dashboard</a>
-    <h1>Category Management</h1>
+    <a href="index.html">← Dashboard</a>
+    <h1>Inventory Management</h1>
   </header>
 
   <main>
-    <section class="form-section">
-      <h2>Add Category</h2>
-      <form id="addCategoryForm">
-        <input type="text" name="name" placeholder="Category Name" required />
+    <!-- Category Management Section -->
+    <section>
+      <h2>Category Management</h2>
+      <form id="categoryForm">
+        <input type="text" id="categoryName" placeholder="Category Name" required />
         <button type="submit">Add Category</button>
       </form>
-    </section>
 
-    <section class="list-section">
-      <h2>All Categories</h2>
-      <button onclick="fetchCategories()">Refresh List</button>
+      <input type="text" id="categorySearch" placeholder="Search Categories" />
+
       <ul id="categoryList"></ul>
     </section>
   </main>
 
   <script>
-    document.getElementById("addCategoryForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const body = Object.fromEntries(formData.entries());
+    const $ = id => document.getElementById(id);
 
-      const res = await fetch("http://localhost:5000/api/categories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+    const fetchCategories = async () => {
+      const res = await fetch('http://localhost:5000/api/categories/summaries');
+      const categories = await res.json();
+      renderCategories(categories);
+    };
 
-      await res.json();
-      alert("Category added!");
-      this.reset();
-      fetchCategories();
-    });
-
-    async function deleteCategory(id) {
-      if (!confirm("Delete this category?")) return;
-      const res = await fetch(`http://localhost:5000/api/categories/${id}`, {
-        method: "DELETE"
-      });
-      const result = await res.json();
-      alert(result.message || "Category deleted.");
-      fetchCategories();
-    }
-
-    async function fetchCategories() {
-      const res = await fetch("http://localhost:5000/api/categories");
-      const data = await res.json();
-      const list = document.getElementById("categoryList");
-      list.innerHTML = "";
-      data.forEach(c => {
-        const li = document.createElement("li");
+    const renderCategories = (categories) => {
+      const list = $('categoryList');
+      list.innerHTML = '';
+      categories.forEach(cat => {
+        const li = document.createElement('li');
         li.innerHTML = `
-          <strong>${c.name}</strong> — ID: ${c._id} — Products: ${c.productCount || 0}
-          <button onclick="deleteCategory('${c._id}')">Delete</button>
+          <div>
+            <strong>${cat.name}</strong>
+            <span>${cat.productCount} products</span>
+          </div>
+          <ul>
+            ${cat.products.map(p => `<li>${p.name}</li>`).join('')}
+          </ul>
+          <div class="button-group">
+            <button class="edit-btn" onclick="editCategory('${cat.id}', '${cat.name}')">Edit</button>
+            <button class="delete-btn" onclick="deleteCategory('${cat.id}')">Delete</button>
+          </div>
         `;
         list.appendChild(li);
       });
-    }
+    };
+
+    $('categoryForm').onsubmit = async e => {
+      e.preventDefault();
+      const name = $('categoryName').value.trim();
+      if (!name) return;
+      await fetch('http://localhost:5000/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      $('categoryName').value = '';
+      fetchCategories();
+    };
+
+    $('categorySearch').oninput = async e => {
+      const query = e.target.value.trim();
+      if (!query) {
+        fetchCategories();
+        return;
+      }
+      const res = await fetch(`http://localhost:5000/api/categories/name/${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const category = await res.json();
+        renderCategories([category]);
+      } else {
+        $('categoryList').innerHTML = '<li style="color: red;">Category not found</li>';
+      }
+    };
+
+    window.editCategory = async (id, currentName) => {
+      const newName = prompt('Enter new category name:', currentName);
+      if (!newName || newName === currentName) return;
+      await fetch(`http://localhost:5000/api/categories/${id}/name`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      });
+      fetchCategories();
+    };
+
+    window.deleteCategory = async id => {
+      if (!confirm('Are you sure you want to delete this category?')) return;
+      await fetch(`http://localhost:5000/api/categories/${id}`, { method: 'DELETE' });
+      fetchCategories();
+    };
 
     fetchCategories();
   </script>

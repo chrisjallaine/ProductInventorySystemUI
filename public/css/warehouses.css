@@ -1,5 +1,11 @@
-body {
+/* Global Styles */
+* {
+  box-sizing: border-box;
   margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: 'Segoe UI', sans-serif;
   background: #f7f9fb;
   color: #333;
@@ -20,54 +26,145 @@ header {
 }
 
 h1 {
-  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
+/* Main Layout */
 main {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.form-section, .list-section {
+.form-section,
+.list-section {
   background: white;
-  padding: 1.5rem;
+  padding: 1.5rem 2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-form input, form button {
-  display: block;
-  width: 100%;
+h2 {
+  font-size: 1.3rem;
+  font-weight: 500;
   margin-bottom: 1rem;
-  padding: 0.5rem;
+}
+
+/* Form Styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+form input,
+form select,
+form button {
   font-size: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: #2980b9;
 }
 
 form button {
   background: #44bd32;
   color: white;
   border: none;
+  font-weight: bold;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
+form button:hover {
+  background: #3da62d;
+}
+
+/* Search Form Horizontal */
+#searchForm {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+#searchForm input,
+#searchForm select {
+  flex: 1;
+  min-width: 200px;
+}
+
+#searchForm button {
+  flex-shrink: 0;
+}
+
+/* Warehouse List */
 ul {
   list-style: none;
   padding: 0;
+  margin-top: 1rem;
 }
 
-li {
+.card {
   background: #ecf0f1;
   padding: 1rem;
   margin-bottom: 0.75rem;
   border-radius: 5px;
+  line-height: 1.6;
 }
 
-li button {
-  background: #e74c3c;
+.card-content {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.card-actions button {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
   color: white;
   border: none;
-  padding: 0.4rem 0.8rem;
   cursor: pointer;
-  margin-top: 0.5rem;
+}
+
+/* Action Buttons */
+.btn.red {
+  background: #e74c3c;
+}
+
+.btn.red:hover {
+  background: #c0392b;
+}
+
+.btn.blue {
+  background: #3498db;
+}
+
+.btn.blue:hover {
+  background: #2980b9;
+}
+
+/* Select placeholder color */
+select:invalid {
+  color: gray;
+}
+
+/* Button Layout */
+button {
+  align-self: flex-start;
+  width: fit-content;
 }

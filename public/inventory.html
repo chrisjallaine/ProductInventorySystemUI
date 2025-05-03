@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Inventory - Whiplash</title>
+  <title>Inventory Manager</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/inventory.css" />
 </head>
@@ -16,209 +16,180 @@
   <main>
     <section class="form-section">
       <h2>Search Inventory</h2>
-
       <form id="searchForm">
-        <label for="searchType">Search By:</label>
-        <select id="searchType" name="searchType" required>
+        <select id="searchType" required>
           <option value="">--Select Search Type--</option>
           <option value="product_name">Product Name</option>
           <option value="product_category">Category</option>
           <option value="product_supplier">Supplier</option>
           <option value="warehouse_name">Warehouse Name</option>
         </select>
-
-        <input type="text" id="searchField" name="searchField" placeholder="Enter search value" style="display:none;" required />
-        <button type="submit" style="display:none;">Search</button>
+        <input type="text" id="searchField" placeholder="Enter search value" style="display: none;" required />
+        <button type="submit" style="display: none;">Search</button>
       </form>
       <ul id="searchResults"></ul>
     </section>
 
     <section class="form-section">
-      <h2>Add Inventory Entry</h2>
-      <form id="addInventoryForm">
-        <label>Product:</label>
-        <select name="product_id" id="productSelect" required></select>
-
-        <label>Warehouse:</label>
-        <select name="warehouse_id" id="warehouseSelect" required></select>
-
-        <input type="number" name="stock" placeholder="Stock" required />
-        <input type="number" name="unitPrice" placeholder="Unit Price" required />
-        <input type="date" name="expiryDate" />
+      <h2>Add Inventory</h2>
+      <form id="addForm">
+        <!-- Product Select -->
+        <label for="productSelect">Product</label>
+        <select id="productSelect" required>
+          <option value="">Select a product</option>
+        </select>
+    
+        <!-- Category and Supplier (Auto-filled) -->
+        <div class="info-fields" style="margin: 10px 0;">
+          <label for="categoryField">Category</label>
+          <input type="text" id="categoryField" placeholder="Category" readonly />
+    
+          <label for="supplierField">Supplier</label>
+          <input type="text" id="supplierField" placeholder="Supplier" readonly />
+        </div>
+    
+        <!-- Warehouse Select -->
+        <label for="warehouseSelect">Warehouse</label>
+        <select id="warehouseSelect" required>
+          <option value="">Select a warehouse</option>
+        </select>
+    
+        <!-- Stock Input -->
+        <label for="stock">Stock Quantity</label>
+        <input type="number" id="stock" placeholder="Enter stock quantity" required />
+    
+        <!-- Submit -->
         <button type="submit">Add Inventory</button>
       </form>
     </section>
+    
 
     <section class="list-section">
       <h2>Low Stock Items</h2>
-      <button onclick="fetchLowStock()">Check Low Stock</button>
+      <select id="lowStockWarehouse">
+        <option value="">Select warehouse</option>
+      </select>
+      <button id="checkLowStock">Check Low Stock</button>
       <ul id="lowStockList"></ul>
+    </section>
+
+    <section class="list-section">
+      <h2>All Inventory</h2>
+      <button id="viewAll">Load All Inventory</button>
+      <ul id="allInventoryList"></ul>
     </section>
   </main>
 
   <script>
-    // Update search field visibility based on the selected search type
-    document.getElementById("searchType").addEventListener("change", function(e) {
-      const searchType = e.target.value;
-      const searchField = document.getElementById("searchField");
-      const searchButton = document.querySelector("form button");
+    const $ = id => document.getElementById(id)
 
-      if (searchType) {
-        searchField.style.display = "inline";
-        searchButton.style.display = "inline";
-        searchField.placeholder = `Enter ${searchType}`;
-      } else {
-        searchField.style.display = "none";
-        searchButton.style.display = "none";
-      }
-    });
-
-    // Function to fetch results for Product Name search
-    async function fetchByProductName(productName) {
-      const res = await fetch(`http://localhost:5000/api/inventory/product-name/${productName}`);
-      const data = await res.json();
-      return data;
+    const api = async (url, method = 'GET', body) => {
+      const res = await fetch(`http://localhost:5000/api/${url}`, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body ? JSON.stringify(body) : undefined
+      })
+      return res.json()
     }
 
-    // Function to fetch results for Product Category search
-    async function fetchByCategory(category) {
-      const res = await fetch(`http://localhost:5000/api/inventory/product-category/${category}`);
-      const data = await res.json();
-      return data;
+    const populateSelect = async (url, selectId, valueKey, textKey) => {
+      const data = await api(url)
+      const select = $(selectId)
+      data.forEach(d => {
+        const opt = document.createElement('option')
+        opt.value = d[valueKey]
+        opt.textContent = d[textKey]
+        select.appendChild(opt)
+      })
     }
 
-    // Function to fetch results for Product Supplier search
-    async function fetchBySupplier(supplier) {
-      const res = await fetch(`http://localhost:5000/api/inventory/product-supplier/${supplier}`);
-      const data = await res.json();
-      return data;
+    const renderList = (data, targetId) => {
+      $(targetId).innerHTML = data.map(i => `
+        <li>
+          <strong>${i.product_id?.name || 'Unknown'}</strong><br/>
+          Category: ${i.product_id?.category?.name || 'N/A'}<br/>
+          Supplier: ${i.product_id?.supplier?.name || 'N/A'}<br/>
+          Stock: ${i.stock}<br/>
+          Unit Price: ${i.unitPrice ? i.unitPrice.toFixed(2) : 'N/A'}<br/>
+          Warehouse: ${i.warehouse_id?.location || 'N/A'}<br/>
+          Last Updated: ${new Date(i.updatedAt || i.createdAt).toLocaleString()}<br/>
+          <button style="background-color: #007bff; color: white;" onclick="updateInventoryPrompt('${i._id}', '${targetId}')">Update</button>
+          <button onclick="deleteInventory('${i._id}', '${targetId}')">Delete</button>
+        </li>
+      `).join('')
     }
 
-    // Function to fetch results for Warehouse Name search
-    async function fetchByWarehouse(warehouse) {
-      const res = await fetch(`http://localhost:5000/api/inventory/warehouse-name/${warehouse}`);
-      const data = await res.json();
-      return data;
-    }
-
-    // Delete inventory item
-    async function deleteInventory(id) {
-      const res = await fetch(`http://localhost:5000/api/inventory/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (res.ok) {
-        alert("Item deleted successfully!");
-        // Remove the item from the displayed list
-        document.querySelector(`#result-${id}`).remove();
-      } else {
-        alert("Failed to delete item.");
+    window.deleteInventory = async (id, listId) => {
+      if (confirm('Delete this inventory item?')) {
+        await api(`inventory/${id}`, 'DELETE')
+        document.querySelector(`#${listId} li button[onclick*="${id}"]`).parentElement.remove()
       }
     }
 
-    // Search form submit handler
-    document.getElementById("searchForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
+    window.updateInventoryPrompt = async (id, listId) => {
+      const stock = prompt('Enter new stock (leave blank to skip):')
+      const payload = {}
+      if (stock !== '' && stock !== null) payload.stock = +stock
+      if (!Object.keys(payload).length) return
+      await api(`inventory/${id}`, 'PUT', payload)
+      const data = await api('inventory')
+      renderList(data, listId)
+    }
 
-      const searchType = document.getElementById("searchType").value;
-      const searchField = document.getElementById("searchField").value.trim();
+    $('searchType').onchange = e => {
+      $('searchField').style.display = e.target.value ? 'inline' : 'none'
+      $('searchForm').querySelector('button').style.display = e.target.value ? 'inline' : 'none'
+    }
 
-      if (!searchType || !searchField) return;
+    $('searchForm').onsubmit = async e => {
+      e.preventDefault()
+      const type = $('searchType').value
+      const value = $('searchField').value.trim()
+      if (!type || !value) return
+      const data = await api(`inventory/${type.replace('_', '-')}/${value}`)
+      renderList(data, 'searchResults')
+    }
 
-      let results = [];
-      switch (searchType) {
-        case "product_name":
-          results = await fetchByProductName(searchField);
-          break;
-        case "product_category":
-          results = await fetchByCategory(searchField);
-          break;
-        case "product_supplier":
-          results = await fetchBySupplier(searchField);
-          break;
-        case "warehouse_name":
-          results = await fetchByWarehouse(searchField);
-          break;
+    $('addForm').onsubmit = async e => {
+      e.preventDefault()
+      const payload = {
+        product_id: $('productSelect').value,
+        warehouse_id: $('warehouseSelect').value,
+        stock: +$('stock').value
       }
-
-      const resultsList = document.getElementById("searchResults");
-      resultsList.innerHTML = results.map(item => {
-        const productName = item.product_id ? item.product_id.name : "N/A";
-        const stock = item.stock || "N/A";
-        const warehouseLocation = item.warehouse_id ? item.warehouse_id.location : "N/A";
-        return `
-          <li id="result-${item._id}">
-            <strong>Product:</strong> ${productName} <br>
-            <strong>Stock:</strong> ${stock} <br>
-            <strong>Warehouse:</strong> ${warehouseLocation} <br>
-            <button onclick="deleteInventory('${item._id}')">Delete</button>
-          </li>
-        `;
-      }).join('');
-    });
-
-    // Fetch products and warehouses for inventory addition
-    async function fetchProducts() {
-      const res = await fetch("http://localhost:5000/api/products");
-      const data = await res.json();
-      const select = document.getElementById("productSelect");
-      select.innerHTML = "";
-      data.forEach(p => {
-        const option = document.createElement("option");
-        option.value = p._id;
-        option.textContent = p.name;
-        select.appendChild(option);
-      });
+      await api('inventory', 'POST', payload)
+      alert('Inventory added.')
+      $('addForm').reset()
+      $('productDetails').style.display = 'none'
     }
 
-    async function fetchWarehouses() {
-      const res = await fetch("http://localhost:5000/api/warehouses");
-      const data = await res.json();
-      const select = document.getElementById("warehouseSelect");
-      select.innerHTML = "";
-      data.forEach(w => {
-        const option = document.createElement("option");
-        option.value = w._id;
-        option.textContent = w.location;
-        select.appendChild(option);
-      });
+    $('checkLowStock').onclick = async () => {
+      const id = $('lowStockWarehouse').value
+      if (!id) return alert('Select a warehouse first.')
+      const data = await api(`inventory/low-stock?warehouseId=${id}`)
+      renderList(data, 'lowStockList')
     }
 
-    // Fetch low stock items
-    async function fetchLowStock() {
-      try {
-        const res = await fetch("http://localhost:5000/api/inventory/low-stock");
-        
-        if (!res.ok) {
-          throw new Error("Failed to fetch low stock items.");
-        }
+    $('viewAll').onclick = async () => {
+      const data = await api('inventory')
+      renderList(data, 'allInventoryList')
+    }
 
-        const data = await res.json();
-        const list = document.getElementById("lowStockList");
-        list.innerHTML = "";
-
-        if (data.length === 0) {
-          list.innerHTML = "<li>No low stock items found.</li>";
-          return;
-        }
-
-        data.forEach(i => {
-          const li = document.createElement("li");
-          li.innerHTML = ` 
-            <strong>${i.product_id.name}</strong><br>
-            Stock: ${i.stock} | Warehouse: ${i.warehouse_id.location}<br>
-            <button onclick="deleteInventory('${i._id}')">Delete</button>
-          `;
-          list.appendChild(li);
-        });
-      } catch (err) {
-        console.error(err);
+    $('productSelect').onchange = async () => {
+      const productId = $('productSelect').value
+      if (!productId) {
+        $('productDetails').style.display = 'none'
+        return
       }
+      const product = await api(`products/${productId}`)
+      $('categoryField').value = product.category?.name || 'N/A'
+      $('supplierField').value = product.supplier?.name || 'N/A'
+      $('productDetails').style.display = 'block'
     }
 
-    // Call the fetch functions to populate products and warehouses
-    fetchProducts();
-    fetchWarehouses();
+    populateSelect('products', 'productSelect', '_id', 'name')
+    populateSelect('warehouses', 'warehouseSelect', '_id', 'location')
+    populateSelect('warehouses', 'lowStockWarehouse', '_id', 'location')
   </script>
 </body>
 </html>

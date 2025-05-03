@@ -1,48 +1,32 @@
-const express = require("express");
-
-const {
-  createInventory,
-  getLowStockItems,
-  getInventoryBySKU,
-  getInventoryByProductId,
-  getInventoryByWarehouseId,
-  getInventoryByExpiryDate,
-  updateInventory,
-  deleteInventory,
-  getInventoryByAuditLog,
-  getInventoryByWarehouseCapacity,
-  getInventoryByWarehouseCurrentUsage,
-  getInventoryByProductName,
-  getInventoryByWarehouseName,
-  getInventoryByProductCategory,
-  getInventoryByProductSupplier,
-  getInventoryByProductLocation,
-  moveInventory,
-  diminishInventory,
-  getAllInventories
-} = require("../controllers/inventoryController");
-
+const express = require('express');
 const router = express.Router();
+const inventoryController = require('../controllers/inventoryController');
+const Product = require('../models/Product'); // ⬅ Ensure consistent casing
 
-router.post("/", createInventory);
-router.get("/low-stock", getLowStockItems);
-router.get("/sku/:sku", getInventoryBySKU);
-router.get("/product/:productId", getInventoryByProductId);
-router.get("/warehouse/:warehouseId", getInventoryByWarehouseId);
-router.get("/expiry/:expiryDate", getInventoryByExpiryDate);
-router.put("/:id", updateInventory);
-router.delete("/:id", deleteInventory);
-router.get("/audit-log/:auditLogId", getInventoryByAuditLog);
-router.get("/warehouse-capacity/:warehouseId", getInventoryByWarehouseCapacity);
-router.get("/warehouse-current-usage/:warehouseId", getInventoryByWarehouseCurrentUsage);
-router.get("/product-name/:productName", getInventoryByProductName);
-router.get("/warehouse-name/:warehouseName", getInventoryByWarehouseName);
-router.get("/product-category/:categoryId", getInventoryByProductCategory);
-router.get("/product-supplier/:supplierId", getInventoryByProductSupplier);
-router.get("/product-location/:locationId", getInventoryByProductLocation);
-router.post("/move", moveInventory);
-router.post("/diminish", diminishInventory);
-router.get("/", getAllInventories);
+// Inventory Routes
+router.get('/', inventoryController.getAllInventory);
+router.get('/:type/:value', inventoryController.searchInventory);
+router.post('/', inventoryController.createInventory);
+router.put('/:id', inventoryController.updateInventory);
+router.delete('/:id', inventoryController.deleteInventory);
+router.get('/low-stock', inventoryController.getLowStockItems);
 
+// Product Lookup Route
+router.get('/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate('category')
+      .populate('supplier');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error retrieving product' });
+  }
+});
 
 module.exports = router;

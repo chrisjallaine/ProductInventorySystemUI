@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Manage Suppliers - Whiplash</title>
+  <title>Supplier Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/suppliers.css" />
 </head>
@@ -15,12 +15,27 @@
 
   <main>
     <section class="form-section">
+      <h2>Search Suppliers</h2>
+      <form id="searchForm" class="horizontal-form">
+        <select id="searchType" required>
+          <option value="" disabled selected hidden>Search Type</option>
+          <option value="product">By Product</option>
+          <option value="warehouse">By Warehouse</option>
+          <option value="category">By Category</option>
+        </select>
+        <input type="text" id="searchValue" placeholder="Enter value..." required />
+        <button type="submit">Search</button>
+      </form>
+      <ul id="searchResults"></ul>
+    </section>  
+
+    <section class="form-section">
       <h2>Add Supplier</h2>
       <form id="addSupplierForm">
         <input type="text" name="name" placeholder="Supplier Name" required />
         <input type="text" name="contact_info" placeholder="Contact Info" />
-        <input type="email" name="email" placeholder="Email" />
-        <input type="text" name="address" placeholder="Address" />
+        <input type="email" name="email" placeholder="Email Address" />
+        <input type="text" name="address" placeholder="Physical Address" />
         <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
         <button type="submit">Add Supplier</button>
       </form>
@@ -34,52 +49,89 @@
   </main>
 
   <script>
-    document.getElementById("addSupplierForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const body = Object.fromEntries(formData.entries());
+    const $ = id => document.getElementById(id)
 
-      const res = await fetch("http://localhost:5000/api/suppliers", {
+    $('addSupplierForm').addEventListener("submit", async e => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const body = Object.fromEntries(formData.entries())
+      await fetch("http://localhost:5000/api/suppliers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
-      });
+      })
+      alert("Supplier added!")
+      e.target.reset()
+      fetchSuppliers()
+    })
 
-      await res.json();
-      alert("Supplier added!");
-      this.reset();
-      fetchSuppliers();
-    });
+    const fetchSuppliers = async () => {
+      const res = await fetch("http://localhost:5000/api/suppliers")
+      const data = await res.json()
+      renderSupplierList(data, "supplierList")
+    }
 
-    async function deleteSupplier(id) {
-      if (!confirm("Delete this supplier?")) return;
+    const deleteSupplier = async id => {
+      if (!confirm("Delete this supplier?")) return
       const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, {
         method: "DELETE"
-      });
-      const result = await res.json();
-      alert(result.message || "Supplier deleted.");
-      fetchSuppliers();
+      })
+      const result = await res.json()
+      alert(result.message || "Deleted.")
+      fetchSuppliers()
     }
 
-    async function fetchSuppliers() {
-      const res = await fetch("http://localhost:5000/api/suppliers");
-      const data = await res.json();
-      const list = document.getElementById("supplierList");
-      list.innerHTML = "";
-      data.forEach(s => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <strong>${s.name}</strong><br>
-          Email: ${s.email || 'N/A'}<br>
-          Rating: ${s.rating || 'N/A'}<br>
-          ID: ${s._id}
-          <button onclick="deleteSupplier('${s._id}')">Delete</button>
-        `;
-        list.appendChild(li);
-      });
+    const updateSupplierPrompt = async (id) => {
+      const name = prompt("Enter new name (leave blank to skip):")
+      const rating = prompt("Enter new rating (1-5, blank to skip):")
+      const payload = {}
+      if (name) payload.name = name
+      if (rating) payload.rating = Number(rating)
+      if (!Object.keys(payload).length) return
+      await fetch(`http://localhost:5000/api/suppliers/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      fetchSuppliers()
     }
 
-    fetchSuppliers();
+    const renderSupplierList = (data, targetId) => {
+      const ul = $(targetId)
+      ul.innerHTML = data.map(s => `
+        <li class="card">
+          <div class="card-content">
+            <div><strong>${s.name}</strong></div>
+            <div>Email: ${s.email || 'N/A'}</div>
+            <div>Rating: ${s.rating || 'N/A'}</div>
+            <div>Contact: ${s.contact_info || 'N/A'}</div>
+            <div>Address: ${s.address || 'N/A'}</div>
+            <div>ID: ${s._id}</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn blue" onclick="updateSupplierPrompt('${s._id}')">Update</button>
+            <button class="btn red" onclick="deleteSupplier('${s._id}')">Delete</button>
+          </div>
+        </li>
+      `).join("")
+    }
+
+    $('searchForm').addEventListener("submit", async (e) => {
+      e.preventDefault()
+      const type = $('searchType').value
+      const value = $('searchValue').value.trim()
+      if (!type || !value) return
+      let url = ''
+      if (type === 'product') url = `suppliers/product/${value}`
+      else if (type === 'warehouse') url = `suppliers/warehouse/${value}`
+      else if (type === 'category') url = `suppliers/category/${value}`
+
+      const res = await fetch(`http://localhost:5000/api/${url}`)
+      const data = await res.json()
+      renderSupplierList(Array.isArray(data) ? data : [data], "searchResults")
+    })
+
+    fetchSuppliers()
   </script>
 </body>
 </html>

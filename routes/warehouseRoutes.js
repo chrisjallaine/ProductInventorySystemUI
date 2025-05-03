@@ -1,22 +1,39 @@
 const express = require("express");
-const { createWarehouse, 
-  getWarehouseById, 
-  getWarehouseUtilization, 
-  getWarehousesByProduct, 
-  getWarehousesBySupplier, 
-  getWarehousesByCategory, 
-  getAllWarehouses } = require("../controllers/warehouseController");
+const {
+  createWarehouse,
+  getAllWarehouses,
+  getWarehouseByName,
+  getWarehousesByLocation,
+  getWarehousesByProduct,
+  getWarehousesBySupplier,
+  updateStockCapacity,
+  deleteWarehouse
+} = require("../controllers/warehouseController");
 
 const router = express.Router();
 
+// ➕ Create Warehouse
 router.post("/", createWarehouse);
-router.get("/:id", getWarehouseById);
-router.get("/:id/utilization", getWarehouseUtilization);
 
-// Relational Queries
+// 📋 Get all Warehouses with details
+router.get("/", getAllWarehouses);
+
+// 🔍 Get by Warehouse Name
+router.get("/name/:name", getWarehouseByName);
+
+// 📍 Get by Location
+router.get("/location/:location", getWarehousesByLocation);
+
+// 🔗 Get by Product ID
 router.get("/product/:productId", getWarehousesByProduct);
-router.get("/supplier/:supplierId", getWarehousesBySupplier);
-router.get("/", getAllWarehouses); // <-- ADD THIS LINE
-router.get("/category/:categoryId", getWarehousesByCategory);
+
+// 🔗 Get by Supplier Name
+router.get("/supplier/:supplierName", getWarehousesBySupplier);
+
+// ✏️ Update Warehouse
+router.put("/:id", updateStockCapacity);
+
+// ❌ Delete Warehouse
+router.delete("/:id", deleteWarehouse);
 
 module.exports = router;

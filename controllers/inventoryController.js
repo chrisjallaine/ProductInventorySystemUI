@@ -1,458 +1,194 @@
-const Inventory = require("../models/Inventory");
-const Warehouse = require("../models/Warehouse");
-const Product = require("../models/Product");
+const Inventory = require('../models/Inventory');
+const Product = require('../models/Product');
+const Warehouse = require('../models/Warehouse');
 
-// Create one or multiple inventories
+// Get all inventory
+exports.getAllInventory = async (req, res) => {
+  try {
+    const inventory = await Inventory.find()
+      .populate('product_id')
+      .populate('warehouse_id');
+    res.json(inventory);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Search inventory
+exports.searchInventory = async (req, res) => {
+  const { type, value } = req.params;
+  let query = {};
+
+  try {
+    if (!value || !value.trim()) {
+      return res.status(400).json({ message: 'Search value is required' });
+    }
+
+    switch (type) {
+      case 'product-name': {
+        const matchingProducts = await Product.find({
+          name: { $regex: new RegExp(value.trim(), 'i') }
+        });
+
+        if (matchingProducts.length === 0) return res.json([]);
+
+        query.product_id = { $in: matchingProducts.map(p => p._id) };
+        break;
+      }
+
+      case 'product-category': {
+        const categoryProducts = await Product.find({
+          category: { $regex: new RegExp(value.trim(), 'i') }
+        });
+
+        if (categoryProducts.length === 0) return res.json([]);
+
+        query.product_id = { $in: categoryProducts.map(p => p._id) };
+        break;
+      }
+
+      case 'product-supplier': {
+        const supplierProducts = await Product.find({
+          supplier: { $regex: new RegExp(value.trim(), 'i') }
+        });
+
+        if (supplierProducts.length === 0) return res.json([]);
+
+        query.product_id = { $in: supplierProducts.map(p => p._id) };
+        break;
+      }
+
+      case 'warehouse-name': {
+        const warehouse = await Warehouse.findOne({
+          location: { $regex: new RegExp(value.trim(), 'i') }
+        });
+
+        if (!warehouse) return res.json([]);
+
+        query.warehouse_id = warehouse._id;
+        break;
+      }
+
+      default:
+        return res.status(400).json({ message: 'Invalid search type' });
+    }
+
+    const results = await Inventory.find(query)
+      .populate('product_id')
+      .populate('warehouse_id');
+
+    // Filter out any that failed population or are missing required fields
+    const cleanResults = results.filter(
+      (i) => i.product_id && i.warehouse_id
+    );
+
+    res.json(cleanResults);
+  } catch (err) {
+    console.error('[searchInventory] Error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 exports.createInventory = async (req, res) => {
+  const { product_id, warehouse_id, stock } = req.body;
+
   try {
-    const inventories = Array.isArray(req.body) ? req.body : [req.body];
+    // Fetch product to get category and supplier
+    const product = await Product.findById(product_id).populate(['category_id', 'supplier_id']);
 
-    // Step 1: Validate warehouses
-    const warehouseIds = inventories.map(i => i.warehouse_id);
-    const warehouses = await Warehouse.find({ _id: { $in: warehouseIds } });
-    const warehouseMap = new Map(warehouses.map(w => [w._id.toString(), w]));
-
-    // Prepare valid inventory records
-    const recordsToInsert = [];
-
-    for (const inv of inventories) {
-      const { product_id, warehouse_id, stock, unitPrice, expiryDate } = inv;
-
-      const warehouse = warehouseMap.get(warehouse_id);
-      if (!warehouse) {
-        return res.status(404).json({ message: `Warehouse not found for ID: ${warehouse_id}` });
-      }
-
-      // Calculate current warehouse stock
-      const currentTotal = await Inventory.aggregate([
-        { $match: { warehouse_id } },
-        { $group: { _id: null, total: { $sum: "$stock" } } }
-      ]);
-
-      const currentStock = currentTotal[0]?.total || 0;
-      const newTotal = currentStock + stock;
-
-      if (newTotal > warehouse.capacity) {
-        return res.status(400).json({ message: `Warehouse overcapacity for ID: ${warehouse_id}` });
-      }
-
-      // Push the valid record
-      recordsToInsert.push({
-        product_id,
-        warehouse_id,
-        stock,
-        unitPrice,
-        expiryDate,
-        auditLog: [{ action: "Create", amount: stock }]
-      });
-
-      // Update current usage
-      warehouse.currentUsage = newTotal;
-      await warehouse.save();
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Step 2: Insert records
-    const result = recordsToInsert.length === 1
-      ? await Inventory.create(recordsToInsert[0])
-      : await Inventory.insertMany(recordsToInsert);
+    const inventory = new Inventory({
+      product_id,
+      warehouse_id,
+      stock,
+      category_id: product.category_id?._id || null,
+      supplier_id: product.supplier_id?._id || null
+    });
 
-    res.status(201).json(result);
+    const saved = await inventory.save();
+    res.status(201).json(saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('[createInventory] Error:', err);
+    res.status(400).json({ message: err.message });
   }
 };
 
+// Add inventory
+exports.createInventory = async (req, res) => {
+  const { product_id, warehouse_id, stock } = req.body;
 
-// Low Stock 
-exports.getLowStockItems = async (req, res) => {
   try {
-    // Set a default threshold if not provided or invalid
-    const threshold = isNaN(parseInt(req.query.threshold)) ? 5 : parseInt(req.query.threshold);
+    // Fetch product to get category and supplier
+    const product = await Product.findById(product_id).populate(['category_id', 'supplier_id']);
 
-    // Fetch low stock items with product and warehouse data
-    const items = await Inventory.find({ stock: { $lt: threshold } })
-      .populate("product_id", "name") // Only populate the name field of the product
-      .populate("warehouse_id", "location"); // Only populate the location field of the warehouse
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
 
-    res.json(items);
+    const inventory = new Inventory({
+      product_id,
+      warehouse_id,
+      stock,
+      category_id: product.category_id?._id || null,
+      supplier_id: product.supplier_id?._id || null
+    });
+
+    const saved = await inventory.save();
+    res.status(201).json(saved);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('[createInventory] Error:', err);
+    res.status(400).json({ message: err.message });
   }
 };
 
-
-// Update Inventory
+// Update inventory
 exports.updateInventory = async (req, res) => {
+  const { stock } = req.body;
+
   try {
-    const { id } = req.params;
-    const { stock, unitPrice, expiryDate } = req.body;
-
-    // Find the inventory item
-    const inventoryItem = await Inventory.findById(id);
-    if (!inventoryItem) {
-      return res.status(404).json({ message: "Inventory item not found" });
-    }
-
-    // Update the item
-    inventoryItem.stock = stock || inventoryItem.stock;
-    inventoryItem.unitPrice = unitPrice || inventoryItem.unitPrice;
-    inventoryItem.expiryDate = expiryDate || inventoryItem.expiryDate;
-
-    await inventoryItem.save();
-    res.json(inventoryItem);
+    const updated = await Inventory.findByIdAndUpdate(
+      req.params.id,
+      { $set: { stock, updatedAt: new Date() } },
+      { new: true }
+    );
+    res.json(updated);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// Delete Inventory
+// Delete inventory
 exports.deleteInventory = async (req, res) => {
   try {
-    const { id } = req.params;
-    const inventoryItem = await Inventory.findByIdAndDelete(id);
-    if (!inventoryItem) {
-      return res.status(404).json({ message: "Inventory item not found" });
-    }
-    res.json({ message: "Inventory item deleted successfully" });
+    await Inventory.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get Inventory by Product ID
-exports.getInventoryByProductId = async (req, res) => {
+// Low stock items for warehouse
+exports.getLowStockItems = async (req, res) => {
+  const { warehouseId } = req.query;
+
+  if (!warehouseId) {
+    return res.status(400).json({ message: 'Warehouse ID is required' });
+  }
+
   try {
-    const { product_id } = req.params;
-    const inventories = await Inventory.find({ product_id })
-      .populate("product_id")
-      .populate("warehouse_id");
+    const lowStock = await Inventory.find({
+      warehouse_id: warehouseId,
+      stock: { $lt: 20 }
+    })
+      .populate('product_id')
+      .populate('warehouse_id');
 
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this product" });
-    }
-
-    res.json(inventories);
+    res.json(lowStock);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
-// Get Inventory by Warehouse ID  
-exports.getInventoryByWarehouseId = async (req, res) => {
-  try {
-    const { warehouse_id } = req.params;
-    const inventories = await Inventory.find({ warehouse_id })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this warehouse" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by SKU
-exports.getInventoryBySKU = async (req, res) => {
-  try {
-    const { sku } = req.params;
-    const inventories = await Inventory.find({ sku })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this SKU" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Expiry Date
-exports.getInventoryByExpiryDate = async (req, res) => {
-  try {
-    const { expiryDate } = req.params;
-    const inventories = await Inventory.find({ expiryDate })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this expiry date" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Audit Log
-exports.getInventoryByAuditLog = async (req, res) => {
-  try {
-    const { action } = req.params;
-    const inventories = await Inventory.find({ "auditLog.action": action })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this audit log action" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Warehouse Capacity
-exports.getInventoryByWarehouseCapacity = async (req, res) => {
-  try {
-    const { capacity } = req.params;
-    const inventories = await Inventory.find({ warehouse_capacity: { $gte: capacity } })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this warehouse capacity" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Warehouse Current Usage
-exports.getInventoryByWarehouseCurrentUsage = async (req, res) => {
-  try {
-    const { currentUsage } = req.params;
-    const inventories = await Inventory.find({ warehouse_current_usage: { $gte: currentUsage } })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this warehouse current usage" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Product Name
-exports.getInventoryByProductName = async (req, res) => {
-  try {
-    const { name } = req.params;
-    const inventories = await Inventory.find({ "product_id.name": name })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this product name" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Product Category
-exports.getInventoryByProductCategory = async (req, res) => {
-  try {
-    const { category } = req.params;
-    const inventories = await Inventory.find({ "product_id.category": category })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this product category" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Product Supplier
-exports.getInventoryByProductSupplier = async (req, res) => {
-  try {
-    const { supplier } = req.params;
-    const inventories = await Inventory.find({ "product_id.supplier": supplier })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this product supplier" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Product Location
-exports.getInventoryByProductLocation = async (req, res) => {
-  try {
-    const { location } = req.params;
-    const inventories = await Inventory.find({ "product_id.location": location })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this product location" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get Inventory by Warehouse Name
-exports.getInventoryByWarehouseName = async (req, res) => {
-  try {
-    const { name } = req.params;
-    const inventories = await Inventory.find({ "warehouse_id.name": name })
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    if (!inventories.length) {
-      return res.status(404).json({ message: "No inventory found for this warehouse name" });
-    }
-
-    res.json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Move Inventory between warehouses
-exports.moveInventory = async (req, res) => {
-  try {
-    const { product_id, fromWarehouseId, toWarehouseId, amount } = req.body;
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: "Amount must be greater than 0" });
-    }
-
-    const sourceInventory = await Inventory.findOne({ product_id, warehouse_id: fromWarehouseId });
-    if (!sourceInventory || sourceInventory.stock < amount) {
-      return res.status(400).json({ message: "Insufficient stock in source warehouse" });
-    }
-
-    const sourceWarehouse = await Warehouse.findById(fromWarehouseId);
-    const destinationWarehouse = await Warehouse.findById(toWarehouseId);
-    if (!destinationWarehouse) {
-      return res.status(404).json({ message: "Destination warehouse not found" });
-    }
-
-    const totalStockInDest = await Inventory.aggregate([
-      { $match: { warehouse_id: toWarehouseId } },
-      { $group: { _id: null, total: { $sum: "$stock" } } }
-    ]);
-
-    const currentDestStock = totalStockInDest[0]?.total || 0;
-    if (currentDestStock + amount > destinationWarehouse.capacity) {
-      return res.status(400).json({ message: "Destination warehouse overcapacity" });
-    }
-
-    // Deduct stock from source inventory
-    sourceInventory.stock -= amount;
-    sourceInventory.auditLog.push({ action: "Transfer Out", amount });
-    await sourceInventory.save();
-
-    // Decrement usage from source warehouse
-    sourceWarehouse.currentUsage -= amount;
-    if (sourceWarehouse.currentUsage < 0) sourceWarehouse.currentUsage = 0;
-    await sourceWarehouse.save();
-
-    // Add stock to destination inventory
-    let destinationInventory = await Inventory.findOne({ product_id, warehouse_id: toWarehouseId });
-
-    if (destinationInventory) {
-      destinationInventory.stock += amount;
-      destinationInventory.auditLog.push({ action: "Transfer In", amount });
-    } else {
-      destinationInventory = new Inventory({
-        product_id,
-        warehouse_id: toWarehouseId,
-        stock: amount,
-        auditLog: [{ action: "Transfer In", amount }]
-      });
-    }
-
-    await destinationInventory.save();
-
-    // Increment usage in destination warehouse
-    destinationWarehouse.currentUsage += amount;
-    await destinationWarehouse.save();
-
-    res.status(200).json({
-      message: "Inventory transferred successfully",
-      from: sourceInventory,
-      to: destinationInventory
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Diminish Inventory
-exports.diminishInventory = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { quantity, reason } = req.body;
-
-    if (!quantity || quantity <= 0) {
-      return res.status(400).json({ message: "Quantity must be greater than 0" });
-    }
-
-    const inventory = await Inventory.findById(id);
-    if (!inventory) {
-      return res.status(404).json({ message: "Inventory record not found" });
-    }
-
-    if (inventory.stock < quantity) {
-      return res.status(400).json({ message: "Not enough stock to diminish" });
-    }
-
-    inventory.stock -= quantity;
-    inventory.auditLog.push({
-      action: "Diminished",
-      amount: quantity,
-      reason: reason || "Unspecified"
-    });
-
-    await inventory.save();
-
-    res.status(200).json({
-      message: "Stock diminished",
-      inventory
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Get All Inventories
-exports.getAllInventories = async (req, res) => {
-  try {
-    const inventories = await Inventory.find()
-      .populate("product_id")
-      .populate("warehouse_id");
-
-    res.status(200).json(inventories);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-

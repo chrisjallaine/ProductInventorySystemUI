@@ -3,26 +3,19 @@ const {
   createProduct,
   getAllProducts,
   getProductById,
-  getProductBySKU,
+  getProductByName,
   updateProduct,
-  deleteProduct,
-  getProductsByWarehouse,
-  getProductsByCategory,
-  getProductsBySupplier
+  deleteProduct
 } = require("../controllers/productController");
 
 const router = express.Router();
 
-router.post("/", createProduct);
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-router.get("/sku/:sku", getProductBySKU);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
-
-// Relational Queries
-router.get("/warehouse/:warehouseId", getProductsByWarehouse);
-router.get("/category/:categoryId", getProductsByCategory);
-router.get("/supplier/:supplierId", getProductsBySupplier);
+// 🔧 CRUD Operations
+router.post("/", createProduct);         // ➕ Create product
+router.get("/", getAllProducts);         // 📦 Get all products
+router.get("/name/:name", getProductByName); // 🔍 Get product by name (name, description, price only)
+router.get("/:id", getProductById);      // 🔍 Get product by ID
+router.put("/:id", updateProduct);       // ✏️ Update product
+router.delete("/:id", deleteProduct);    // 🗑️ Delete product
 
 module.exports = router;

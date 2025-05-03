@@ -1,73 +1,162 @@
 body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f3f4f6;
+  color: #1f2937;
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #f7f9fb;
-  color: #333;
-  padding: 1rem 2rem;
+  padding: 0;
 }
 
 header {
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem 2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  justify-content: space-between;
 }
 
-.back-link {
+header a {
+  color: #3b82f6;
   text-decoration: none;
-  color: #2980b9;
-  font-weight: bold;
+  font-weight: 500;
 }
 
-h1 {
+header a:hover {
+  text-decoration: underline;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
   margin: 0;
 }
 
 main {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+section {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
-.form-section, .list-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-form input, form select, form button {
-  display: block;
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
+form input,
+form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
   font-size: 1rem;
 }
 
-form button {
-  background: #44bd32;
-  color: white;
-  border: none;
-  cursor: pointer;
+form input:focus,
+form select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-.product-list {
+form button {
+  background-color: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+form button:hover {
+  background-color: #2563eb;
+}
+
+#cancelEdit {
+  background-color: #6b7280;
+}
+
+#cancelEdit:hover {
+  background-color: #4b5563;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+#productList {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-.product-list li {
-  background: #ecf0f1;
+#productList li {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
   padding: 1rem;
-  margin-bottom: 0.75rem;
-  border-radius: 5px;
+  margin-bottom: 1rem;
+  border-radius: 0.375rem;
 }
 
-.product-list li button {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
+#productList strong {
+  display: block;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.button-group button {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+}
+
+.button-group button:nth-child(1) {
+  background-color: #facc15;
+  color: #1f2937;
+}
+
+.button-group button:nth-child(1):hover {
+  background-color: #eab308;
+}
+
+.button-group button:nth-child(2) {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.button-group button:nth-child(2):hover {
+  background-color: #dc2626;
+}
+
+#searchResult {
+  margin-top: 1rem;
+  font-weight: 500;
 }
