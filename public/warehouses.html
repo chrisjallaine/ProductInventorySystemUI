@@ -6,6 +6,25 @@
   <title>Warehouse Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/warehouses.css" />
+  <style>
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    dialog {
+      border: none;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    dialog form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -19,10 +38,8 @@
       <form id="searchForm">
         <select id="searchType" required>
           <option value="" disabled selected hidden>Search Type</option>
-          <option value="product">By Product ID</option>
-          <option value="supplier">By Supplier Name</option>
-          <option value="category">By Category Name</option>
           <option value="name">By Warehouse Name</option>
+          <option value="location">By Location</option>
         </select>
         <input type="text" id="searchValue" placeholder="Enter value..." required />
         <button type="submit">Search</button>
@@ -47,7 +64,6 @@
     </section>
   </main>
 
-  <!-- Update Modal -->
   <dialog id="updateModal">
     <form method="dialog" id="updateForm">
       <input type="hidden" id="updateId" />
@@ -62,68 +78,70 @@
   </dialog>
 
   <script>
-    const $ = id => document.getElementById(id);
-    const updateModal = $('updateModal');
-    const searchForm = $('searchForm');
+    const $ = id => document.getElementById(id)
+    const updateModal = $('updateModal')
+    const searchForm = $('searchForm')
 
-    let latestSearch = null;
+    let latestSearch = null
 
     $('addWarehouseForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const body = Object.fromEntries(formData.entries());
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const body = Object.fromEntries(formData.entries())
       await fetch('http://localhost:5000/api/warehouses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
-      });
-      alert('Warehouse added!');
-      e.target.reset();
-      fetchWarehouses();
-    });
+      })
+      alert('Warehouse added!')
+      e.target.reset()
+      fetchWarehouses()
+    })
 
     const fetchWarehouses = async () => {
-      const res = await fetch('http://localhost:5000/api/warehouses');
-      const data = await res.json();
-      renderWarehouseList(data, 'warehouseList');
-    };
+      const res = await fetch('http://localhost:5000/api/warehouses')
+      const data = await res.json()
+      renderWarehouseList(data, 'warehouseList')
+    }
 
     const deleteWarehouse = async id => {
-      if (!confirm('Delete this warehouse?')) return;
+      if (!confirm('Delete this warehouse?')) return
       await fetch(`http://localhost:5000/api/warehouses/${id}`, {
         method: 'DELETE'
-      });
-      alert('Deleted.');
-      fetchWarehouses();
-      refreshSearch();
-    };
+      })
+      alert('Deleted.')
+      fetchWarehouses()
+      refreshSearch()
+    }
 
     const openUpdateModal = (w) => {
-      $('updateId').value = w.id;
-      $('updateName').value = w.name;
-      $('updateLocation').value = w.location;
-      $('updateCapacity').value = w.capacity;
-      updateModal.showModal();
-    };
+      $('updateId').value = w.id
+      $('updateName').value = w.name
+      $('updateLocation').value = w.location
+      $('updateCapacity').value = w.capacity
+      updateModal.showModal()
+    }
 
     $('updateForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const id = $('updateId').value;
-      const name = $('updateName').value;
-      const location = $('updateLocation').value;
-      const capacity = Number($('updateCapacity').value);
+      e.preventDefault()
+      const id = $('updateId').value
+      const name = $('updateName').value
+      const location = $('updateLocation').value
+      const capacity = Number($('updateCapacity').value)
+
       await fetch(`http://localhost:5000/api/warehouses/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, location, capacity })
-      });
-      updateModal.close();
-      fetchWarehouses();
-      refreshSearch();
-    });
+      })
+
+      updateModal.close()
+      fetchWarehouses()
+      refreshSearch()
+    })
 
     const renderWarehouseList = (data, targetId) => {
-      const ul = $(targetId);
+      const ul = $(targetId)
       ul.innerHTML = data.map(w => `
         <li class="card">
           <div class="card-content">
@@ -131,43 +149,34 @@
             <div><strong>Location:</strong> ${w.location}</div>
             <div><strong>Capacity:</strong> ${w.capacity}</div>
             <div><strong>Utilized:</strong> ${w.utilized ?? 'N/A'}</div>
-            <div><strong>ID:</strong> ${w.id}</div>
           </div>
           <div class="card-actions">
             <button class="btn blue" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
             <button class="btn red" onclick="deleteWarehouse('${w.id}')">Delete</button>
           </div>
         </li>
-      `).join('');
-    };
+      `).join('')
+    }
 
     searchForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const type = $('searchType').value;
-      const value = $('searchValue').value.trim();
-      if (!type || !value) return;
-      latestSearch = { type, value };
+      e.preventDefault()
+      const type = $('searchType').value
+      const value = $('searchValue').value.trim()
+      if (!type || !value) return
+      latestSearch = { type, value }
 
-      const path = type === 'product'
-        ? `product/${value}`
-        : type === 'category'
-        ? `category/${value}`
-        : type === 'supplier'
-        ? `supplier/${value}`
-        : `name/${value}`;
-
-      const res = await fetch(`http://localhost:5000/api/warehouses/${path}`);
-      const data = await res.json();
-      renderWarehouseList(Array.isArray(data) ? data : [data], 'searchResults');
-    });
+      const res = await fetch(`http://localhost:5000/api/warehouses/${type}/${value}`)
+      const data = await res.json()
+      renderWarehouseList(Array.isArray(data) ? data : [data], 'searchResults')
+    })
 
     const refreshSearch = () => {
-      if (!latestSearch) return;
-      const event = new Event('submit');
-      searchForm.dispatchEvent(event);
-    };
+      if (!latestSearch) return
+      const event = new Event('submit')
+      searchForm.dispatchEvent(event)
+    }
 
-    fetchWarehouses();
+    fetchWarehouses()
   </script>
 </body>
 </html>
