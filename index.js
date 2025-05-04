@@ -8,7 +8,8 @@ const connectDB = require("./config/database");
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const warehouseRoutes = require("./routes/warehouseRoutes");
-const inventoryRoutes = require("./routes/inventoryRoutes");
+const inventoryRoutes = require('./routes/inventoryRoutes');
+//const inventoryHistoryRoutes = require('./routes/inventoryHistoryRoutes');
 const supplierRoutes = require("./routes/supplierRoutes");
 
 dotenv.config();
@@ -27,7 +28,8 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/warehouses", warehouseRoutes);
-app.use("/api/inventory", inventoryRoutes);
+app.use('/api/inventory', inventoryRoutes);
+//app.use('/api/inventory/history', inventoryHistoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
 
 // 404 + Error Handler

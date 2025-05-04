@@ -29,13 +29,15 @@ exports.getAllProducts = async (req, res) => {
 // 🔍 Get Product by ID
 exports.getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('category_id supplier_id');
-    if (!product) return res.status(404).json({ message: 'Product not found' });
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const product = await Product.findById(req.params.id)
+      .populate('category_id')
+      .populate('supplier_id')
+    if (!product) return res.status(404).json({ message: 'Product not found' })
+    res.json(product)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
-};
+}
 
 // 🔍 Get Product by Name (only name, description, price)
 exports.getProductByName = async (req, res) => {

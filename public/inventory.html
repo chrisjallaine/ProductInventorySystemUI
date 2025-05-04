@@ -33,36 +33,30 @@
     <section class="form-section">
       <h2>Add Inventory</h2>
       <form id="addForm">
-        <!-- Product Select -->
         <label for="productSelect">Product</label>
         <select id="productSelect" required>
           <option value="">Select a product</option>
         </select>
-    
-        <!-- Category and Supplier (Auto-filled) -->
+
         <div class="info-fields" style="margin: 10px 0;">
           <label for="categoryField">Category</label>
           <input type="text" id="categoryField" placeholder="Category" readonly />
-    
+
           <label for="supplierField">Supplier</label>
           <input type="text" id="supplierField" placeholder="Supplier" readonly />
         </div>
-    
-        <!-- Warehouse Select -->
+
         <label for="warehouseSelect">Warehouse</label>
         <select id="warehouseSelect" required>
           <option value="">Select a warehouse</option>
         </select>
-    
-        <!-- Stock Input -->
+
         <label for="stock">Stock Quantity</label>
         <input type="number" id="stock" placeholder="Enter stock quantity" required />
-    
-        <!-- Submit -->
+
         <button type="submit">Add Inventory</button>
       </form>
     </section>
-    
 
     <section class="list-section">
       <h2>Low Stock Items</h2>
@@ -107,13 +101,13 @@
       $(targetId).innerHTML = data.map(i => `
         <li>
           <strong>${i.product_id?.name || 'Unknown'}</strong><br/>
-          Category: ${i.product_id?.category?.name || 'N/A'}<br/>
-          Supplier: ${i.product_id?.supplier?.name || 'N/A'}<br/>
+          Category: ${i.category_id?.name || ''}<br/>
+          Supplier: ${i.supplier_id?.name || ''}<br/>
           Stock: ${i.stock}<br/>
-          Unit Price: ${i.unitPrice ? i.unitPrice.toFixed(2) : 'N/A'}<br/>
-          Warehouse: ${i.warehouse_id?.location || 'N/A'}<br/>
+          Unit Price: ${i.unitPrice ? i.unitPrice.toFixed(2) : ''}<br/>
+          Warehouse: ${i.warehouse_id?.location || ''}<br/>
           Last Updated: ${new Date(i.updatedAt || i.createdAt).toLocaleString()}<br/>
-          <button style="background-color: #007bff; color: white;" onclick="updateInventoryPrompt('${i._id}', '${targetId}')">Update</button>
+          <button onclick="updateInventoryPrompt('${i._id}', '${targetId}')">Update</button>
           <button onclick="deleteInventory('${i._id}', '${targetId}')">Delete</button>
         </li>
       `).join('')
@@ -160,7 +154,8 @@
       await api('inventory', 'POST', payload)
       alert('Inventory added.')
       $('addForm').reset()
-      $('productDetails').style.display = 'none'
+      $('categoryField').value = ''
+      $('supplierField').value = ''
     }
 
     $('checkLowStock').onclick = async () => {
@@ -178,13 +173,13 @@
     $('productSelect').onchange = async () => {
       const productId = $('productSelect').value
       if (!productId) {
-        $('productDetails').style.display = 'none'
+        $('categoryField').value = ''
+        $('supplierField').value = ''
         return
       }
       const product = await api(`products/${productId}`)
-      $('categoryField').value = product.category?.name || 'N/A'
-      $('supplierField').value = product.supplier?.name || 'N/A'
-      $('productDetails').style.display = 'block'
+      $('categoryField').value = product.category_id?.name || ''
+      $('supplierField').value = product.supplier_id?.name || ''
     }
 
     populateSelect('products', 'productSelect', '_id', 'name')
