@@ -19,9 +19,10 @@
       <form id="searchForm">
         <select id="searchType" required>
           <option value="" disabled selected hidden>Search Type</option>
-          <option value="product">By Product Name</option>
+          <option value="product">By Product ID</option>
           <option value="supplier">By Supplier Name</option>
           <option value="category">By Category Name</option>
+          <option value="name">By Warehouse Name</option>
         </select>
         <input type="text" id="searchValue" placeholder="Enter value..." required />
         <button type="submit">Search</button>
@@ -32,6 +33,7 @@
     <section class="form-section">
       <h2>Add Warehouse</h2>
       <form id="addWarehouseForm">
+        <input type="text" name="name" placeholder="Name" required />
         <input type="text" name="location" placeholder="Location" required />
         <input type="number" name="capacity" placeholder="Capacity" required />
         <button type="submit">Add Warehouse</button>
@@ -45,8 +47,26 @@
     </section>
   </main>
 
+  <!-- Update Modal -->
+  <dialog id="updateModal">
+    <form method="dialog" id="updateForm">
+      <input type="hidden" id="updateId" />
+      <input type="text" id="updateName" placeholder="Name" required />
+      <input type="text" id="updateLocation" placeholder="Location" required />
+      <input type="number" id="updateCapacity" placeholder="Capacity" required />
+      <menu>
+        <button type="submit">Update</button>
+        <button type="reset" onclick="updateModal.close()">Cancel</button>
+      </menu>
+    </form>
+  </dialog>
+
   <script>
     const $ = id => document.getElementById(id);
+    const updateModal = $('updateModal');
+    const searchForm = $('searchForm');
+
+    let latestSearch = null;
 
     $('addWarehouseForm').addEventListener('submit', async e => {
       e.preventDefault();
@@ -75,46 +95,77 @@
       });
       alert('Deleted.');
       fetchWarehouses();
+      refreshSearch();
     };
 
-    const updateWarehousePrompt = async id => {
-      const capacity = prompt('Enter new capacity:');
-      if (!capacity || isNaN(capacity)) return alert('Invalid capacity.');
+    const openUpdateModal = (w) => {
+      $('updateId').value = w.id;
+      $('updateName').value = w.name;
+      $('updateLocation').value = w.location;
+      $('updateCapacity').value = w.capacity;
+      updateModal.showModal();
+    };
+
+    $('updateForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const id = $('updateId').value;
+      const name = $('updateName').value;
+      const location = $('updateLocation').value;
+      const capacity = Number($('updateCapacity').value);
       await fetch(`http://localhost:5000/api/warehouses/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ capacity: Number(capacity) })
+        body: JSON.stringify({ name, location, capacity })
       });
+      updateModal.close();
       fetchWarehouses();
-    };
+      refreshSearch();
+    });
 
     const renderWarehouseList = (data, targetId) => {
       const ul = $(targetId);
       ul.innerHTML = data.map(w => `
         <li class="card">
           <div class="card-content">
+            <div><strong>Name:</strong> ${w.name}</div>
             <div><strong>Location:</strong> ${w.location}</div>
             <div><strong>Capacity:</strong> ${w.capacity}</div>
-            <div><strong>ID:</strong> ${w._id}</div>
+            <div><strong>Utilized:</strong> ${w.utilized ?? 'N/A'}</div>
+            <div><strong>ID:</strong> ${w.id}</div>
           </div>
           <div class="card-actions">
-            <button class="btn blue" onclick="updateWarehousePrompt('${w._id}')">Update</button>
-            <button class="btn red" onclick="deleteWarehouse('${w._id}')">Delete</button>
+            <button class="btn blue" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
+            <button class="btn red" onclick="deleteWarehouse('${w.id}')">Delete</button>
           </div>
         </li>
       `).join('');
     };
 
-    $('searchForm').addEventListener('submit', async e => {
+    searchForm.addEventListener('submit', async e => {
       e.preventDefault();
       const type = $('searchType').value;
       const value = $('searchValue').value.trim();
       if (!type || !value) return;
-      const url = `http://localhost:5000/api/warehouses/${type}?q=${encodeURIComponent(value)}`;
-      const res = await fetch(url);
+      latestSearch = { type, value };
+
+      const path = type === 'product'
+        ? `product/${value}`
+        : type === 'category'
+        ? `category/${value}`
+        : type === 'supplier'
+        ? `supplier/${value}`
+        : `name/${value}`;
+
+      const res = await fetch(`http://localhost:5000/api/warehouses/${path}`);
       const data = await res.json();
       renderWarehouseList(Array.isArray(data) ? data : [data], 'searchResults');
     });
+
+    const refreshSearch = () => {
+      if (!latestSearch) return;
+      const event = new Event('submit');
+      searchForm.dispatchEvent(event);
+    };
 
     fetchWarehouses();
   </script>

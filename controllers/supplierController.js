@@ -81,17 +81,30 @@ exports.deleteSupplier = async (req, res) => {
   }
 };
 
-// 📦 Get all suppliers of a specific product
+// 📦 Get all suppliers of products matching a given name
 exports.getSuppliersByProduct = async (req, res) => {
   try {
-    const products = await Product.find({ _id: req.params.productId });
+    const value = req.params.value.trim();
 
-    const supplierIds = [...new Set(products.map(p => p.supplier_id?.toString()).filter(Boolean))];
-    const suppliers = await Supplier.find({ _id: { $in: supplierIds } });
+    // 1. Find products by name (case-insensitive)
+    const matchedProducts = await Product.find({
+      name: { $regex: new RegExp(value, "i") }
+    });
+
+    if (!matchedProducts.length) {
+      return res.status(404).json({ message: "No products matched the given name." });
+    }
+
+    // 2. Extract their IDs
+    const productIds = matchedProducts.map(p => p._id);
+
+    // 3. Find suppliers supplying any of these products
+    const suppliers = await Supplier.find({ products: { $in: productIds } });
 
     res.json(suppliers);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error in getSuppliersByProduct:", err.message);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 

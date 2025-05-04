@@ -25,8 +25,8 @@ router.put("/:id", updateSupplier);
 // 🗑️ Delete Supplier
 router.delete("/:id", deleteSupplier);
 
-// 📦 Get all suppliers of a specific product
-router.get("/product/:productId", getSuppliersByProduct);
+// 📦 Get all suppliers by product name 
+router.get("/product/:value", getSuppliersByProduct);
 
 // 🏢 Get all suppliers supplying to a warehouse
 router.get("/warehouse/:warehouseId", getSuppliersByWarehouse);

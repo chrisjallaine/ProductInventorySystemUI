@@ -1,177 +1,108 @@
-const Warehouse = require('../models/Warehouse');
-const Inventory = require('../models/Inventory');
-const Product = require('../models/Product');
+const Warehouse = require('../models/Warehouse')
+const Product = require('../models/Product')
+const Supplier = require('../models/Supplier')
 
-// ➕ Create Warehouse with name, location, and capacity
-exports.createWarehouse = async (req, res) => {
-  try {
-    const { name, location, capacity } = req.body;
-    const warehouse = await Warehouse.create({ name, location, capacity });
-    res.status(201).json(warehouse);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// 📦 Get all Warehouses with utilization details
+// GET all warehouses
 exports.getAllWarehouses = async (req, res) => {
   try {
-    const warehouses = await Warehouse.find();
-    const inventories = await Inventory.find();
-
-    const warehouseDetails = warehouses.map(warehouse => {
-      const stock = inventories
-        .filter(inv => inv.warehouse_id.toString() === warehouse._id.toString())
-        .reduce((sum, inv) => sum + inv.stock, 0);
-      return {
-        id: warehouse._id,
-        name: warehouse.name,
-        location: warehouse.location,
-        capacity: warehouse.capacity,
-        utilized: stock
-      };
-    });
-
-    res.json(warehouseDetails);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const warehouses = await Warehouse.find()
+    res.json(warehouses)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
-};
+}
 
-// 🏢 Get Warehouse by Name
+// GET warehouse by name
 exports.getWarehouseByName = async (req, res) => {
   try {
-    const name = req.params.name;
-    const warehouses = await Warehouse.find({ name: new RegExp(name, 'i') });
-    if (!warehouses.length) return res.status(404).json({ message: 'Warehouse not found' });
-
-    const inventories = await Inventory.find();
-    const detailed = warehouses.map(wh => {
-      const totalStock = inventories
-        .filter(i => i.warehouse_id.toString() === wh._id.toString())
-        .reduce((sum, inv) => sum + inv.stock, 0);
-      return {
-        id: wh._id,
-        name: wh.name,
-        location: wh.location,
-        capacity: wh.capacity,
-        utilized: totalStock
-      };
-    });
-
-    res.json(detailed);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// 📍 Get Warehouses by Location (with utilization details)
-exports.getWarehousesByLocation = async (req, res) => {
-  try {
-    const location = req.params.location;
-    const warehouses = await Warehouse.find({ location: new RegExp(location, 'i') });
-    const inventories = await Inventory.find();
-
-    const detailed = warehouses.map(wh => {
-      const totalStock = inventories
-        .filter(i => i.warehouse_id.toString() === wh._id.toString())
-        .reduce((sum, inv) => sum + inv.stock, 0);
-      return {
-        id: wh._id,
-        name: wh.name,
-        location: wh.location,
-        capacity: wh.capacity,
-        utilized: totalStock
-      };
-    });
-
-    res.json(detailed);
+    const name = req.params.name
+    const warehouses = await Warehouse.find({ name: new RegExp(name, 'i') })
+    res.json(warehouses)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message })
   }
-};
+}
 
-// 🔍 Get Warehouses by Product (with utilization)
-exports.getWarehousesByProduct = async (req, res) => {
-  try {
-    const productId = req.params.productId;
-    const inventory = await Inventory.find({ product_id: productId }).populate('warehouse_id');
-
-    const warehouseMap = new Map();
-
-    for (const entry of inventory) {
-      const id = entry.warehouse_id._id.toString();
-      if (!warehouseMap.has(id)) {
-        const stock = inventory
-          .filter(i => i.warehouse_id._id.toString() === id)
-          .reduce((sum, i) => sum + i.stock, 0);
-        warehouseMap.set(id, {
-          id,
-          name: entry.warehouse_id.name,
-          location: entry.warehouse_id.location,
-          capacity: entry.warehouse_id.capacity,
-          utilized: stock
-        });
-      }
-    }
-
-    res.json([...warehouseMap.values()]);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// 🛠️ Get Warehouses by Supplier Name (with utilization)
+// GET warehouses by supplier name
 exports.getWarehousesBySupplier = async (req, res) => {
   try {
-    const supplier = req.params.supplierName;
-    const products = await Product.find({ supplier });
-    const productIds = products.map(p => p._id.toString());
+    const supplierName = req.params.name
+    const supplier = await Supplier.findOne({ name: new RegExp(supplierName, 'i') })
+    if (!supplier) return res.status(404).json({ message: 'Supplier not found' })
 
-    const inventory = await Inventory.find({ product_id: { $in: productIds } }).populate('warehouse_id');
+    const products = await Product.find({ supplier: supplier._id })
+    const productIds = products.map(p => p._id)
 
-    const warehouseMap = new Map();
-
-    for (const entry of inventory) {
-      const id = entry.warehouse_id._id.toString();
-      if (!warehouseMap.has(id)) {
-        const stock = inventory
-          .filter(i => i.warehouse_id._id.toString() === id)
-          .reduce((sum, i) => sum + i.stock, 0);
-        warehouseMap.set(id, {
-          id,
-          name: entry.warehouse_id.name,
-          location: entry.warehouse_id.location,
-          capacity: entry.warehouse_id.capacity,
-          utilized: stock
-        });
-      }
-    }
-
-    res.json([...warehouseMap.values()]);
+    const warehouses = await Warehouse.find({ 'products': { $in: productIds } })
+    res.json(warehouses)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message })
   }
-};
+}
 
-// ✏️ Update Warehouse Info
-exports.updateStockCapacity = async (req, res) => {
+// GET warehouses by product name
+exports.getWarehousesByProductName = async (req, res) => {
   try {
-    const warehouse = await Warehouse.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!warehouse) return res.status(404).json({ message: 'Warehouse not found' });
-    res.json(warehouse);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+    const productName = req.params.name
+    const products = await Product.find({ name: new RegExp(productName, 'i') })
+    if (products.length === 0) return res.status(404).json({ message: 'No products found' })
 
-// ❌ Delete Warehouse
+    const productIds = products.map(p => p._id)
+    const warehouses = await Warehouse.find({ 'products': { $in: productIds } })
+    res.json(warehouses)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// GET warehouses by category name
+exports.getWarehousesByCategory = async (req, res) => {
+  try {
+    const categoryName = req.params.name
+    const products = await Product.find({ category: new RegExp(categoryName, 'i') })
+    if (products.length === 0) return res.status(404).json({ message: 'No products found' })
+
+    const productIds = products.map(p => p._id)
+    const warehouses = await Warehouse.find({ 'products': { $in: productIds } })
+    res.json(warehouses)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// ADD warehouse
+exports.addWarehouse = async (req, res) => {
+  try {
+    const { name, location, capacity } = req.body
+    const warehouse = new Warehouse({ name, location, capacity })
+    const saved = await warehouse.save()
+    res.status(201).json(saved)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+}
+
+// UPDATE warehouse
+exports.updateWarehouse = async (req, res) => {
+  try {
+    const { name, location, capacity } = req.body
+    const updated = await Warehouse.findByIdAndUpdate(
+      req.params.id,
+      { name, location, capacity },
+      { new: true }
+    )
+    res.json(updated)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+}
+
+// DELETE warehouse
 exports.deleteWarehouse = async (req, res) => {
   try {
-    const warehouse = await Warehouse.findByIdAndDelete(req.params.id);
-    if (!warehouse) return res.status(404).json({ message: 'Warehouse not found' });
-    res.json({ message: 'Warehouse deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    await Warehouse.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Warehouse deleted' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
-};
+}

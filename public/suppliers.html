@@ -15,19 +15,13 @@
 
   <main>
     <section class="form-section">
-      <h2>Search Suppliers</h2>
-      <form id="searchForm" class="horizontal-form">
-        <select id="searchType" required>
-          <option value="" disabled selected hidden>Search Type</option>
-          <option value="product">By Product</option>
-          <option value="warehouse">By Warehouse</option>
-          <option value="category">By Category</option>
-        </select>
-        <input type="text" id="searchValue" placeholder="Enter value..." required />
+      <h2>Search Suppliers by Name</h2>
+      <form id="searchForm">
+        <input type="text" id="searchValue" placeholder="Enter supplier name..." required />
         <button type="submit">Search</button>
       </form>
       <ul id="searchResults"></ul>
-    </section>  
+    </section>
 
     <section class="form-section">
       <h2>Add Supplier</h2>
@@ -48,8 +42,26 @@
     </section>
   </main>
 
+  <!-- Modal for updating supplier -->
+  <div class="modal" id="updateModal">
+    <div class="modal-content">
+      <button class="close" onclick="hideModal()">×</button>
+      <h3>Update Supplier</h3>
+      <form id="updateSupplierForm">
+        <input type="hidden" name="_id" />
+        <input type="text" name="name" placeholder="Supplier Name" required />
+        <input type="text" name="contact_info" placeholder="Contact Info" />
+        <input type="email" name="email" placeholder="Email Address" />
+        <input type="text" name="address" placeholder="Physical Address" />
+        <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
   <script>
     const $ = id => document.getElementById(id)
+    let lastSearchValue = ''
 
     $('addSupplierForm').addEventListener("submit", async e => {
       e.preventDefault()
@@ -73,28 +85,41 @@
 
     const deleteSupplier = async id => {
       if (!confirm("Delete this supplier?")) return
-      const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, {
-        method: "DELETE"
-      })
+      const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, { method: "DELETE" })
       const result = await res.json()
       alert(result.message || "Deleted.")
       fetchSuppliers()
+      if (lastSearchValue) await performSearch(lastSearchValue)
     }
 
-    const updateSupplierPrompt = async (id) => {
-      const name = prompt("Enter new name (leave blank to skip):")
-      const rating = prompt("Enter new rating (1-5, blank to skip):")
-      const payload = {}
-      if (name) payload.name = name
-      if (rating) payload.rating = Number(rating)
-      if (!Object.keys(payload).length) return
-      await fetch(`http://localhost:5000/api/suppliers/${id}`, {
+    const showUpdateModal = (supplier) => {
+      const form = $('updateSupplierForm')
+      form._id.value = supplier._id
+      form.name.value = supplier.name || ''
+      form.contact_info.value = supplier.contact_info || ''
+      form.email.value = supplier.email || ''
+      form.address.value = supplier.address || ''
+      form.rating.value = supplier.rating || ''
+      $('updateModal').style.display = 'flex'
+    }
+
+    const hideModal = () => {
+      $('updateModal').style.display = 'none'
+    }
+
+    $('updateSupplierForm').addEventListener('submit', async e => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const { _id, ...rest } = Object.fromEntries(formData.entries())
+      await fetch(`http://localhost:5000/api/suppliers/${_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(rest)
       })
+      hideModal()
       fetchSuppliers()
-    }
+      if (lastSearchValue) await performSearch(lastSearchValue)
+    })
 
     const renderSupplierList = (data, targetId) => {
       const ul = $(targetId)
@@ -109,26 +134,32 @@
             <div>ID: ${s._id}</div>
           </div>
           <div class="card-actions">
-            <button class="btn blue" onclick="updateSupplierPrompt('${s._id}')">Update</button>
+            <button class="btn blue" onclick='showUpdateModal(${JSON.stringify(s)})'>Update</button>
             <button class="btn red" onclick="deleteSupplier('${s._id}')">Delete</button>
           </div>
         </li>
       `).join("")
     }
 
+    const performSearch = async (name) => {
+      try {
+        const encodedValue = encodeURIComponent(name)
+        const res = await fetch(`http://localhost:5000/api/suppliers/name/${encodedValue}`, {
+          headers: { "Cache-Control": "no-store" }
+        })
+        const data = await res.json()
+        renderSupplierList(Array.isArray(data) ? data : [data], "searchResults")
+      } catch (err) {
+        alert("Error fetching data.")
+        console.error(err)
+      }
+    }
+
     $('searchForm').addEventListener("submit", async (e) => {
       e.preventDefault()
-      const type = $('searchType').value
-      const value = $('searchValue').value.trim()
-      if (!type || !value) return
-      let url = ''
-      if (type === 'product') url = `suppliers/product/${value}`
-      else if (type === 'warehouse') url = `suppliers/warehouse/${value}`
-      else if (type === 'category') url = `suppliers/category/${value}`
-
-      const res = await fetch(`http://localhost:5000/api/${url}`)
-      const data = await res.json()
-      renderSupplierList(Array.isArray(data) ? data : [data], "searchResults")
+      lastSearchValue = $('searchValue').value.trim()
+      if (!lastSearchValue) return
+      await performSearch(lastSearchValue)
     })
 
     fetchSuppliers()
