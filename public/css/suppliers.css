@@ -1,42 +1,46 @@
 /* Base Styles */
 body {
-  margin: 0;
   font-family: 'Poppins', sans-serif;
-  background: #f7f9fb;
+  background: #f7f9fc;
+  margin: 0;
+  padding: 0;
   color: #333;
-  padding: 1rem 2rem;
 }
 
 header {
+  background-color: #000;
+  color: white;
+  padding: 1rem 2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  justify-content: space-between;
+  margin-bottom: 0;
 }
 
 .back-link {
+  color: #fff;
   text-decoration: none;
-  color: #2980b9;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 h1 {
   margin: 0;
   font-weight: 600;
+  color: white;
 }
 
 main {
-  display: flex;
-  flex-direction: column;
+  padding: 2rem;
+  display: grid;
   gap: 2rem;
 }
 
 /* Sections */
 .form-section, .list-section {
   background: white;
-  padding: 1.5rem 2rem;
+  padding: 1.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 section h2 {
@@ -51,6 +55,7 @@ section h2 {
   gap: 1rem;
   flex-wrap: wrap;
   width: 100%;
+  max-width: 700px;
 }
 
 #searchForm select,
@@ -59,9 +64,10 @@ section h2 {
   min-width: 250px;
   font-size: 1rem;
   padding: 0.65rem 1rem;
-  border-radius: 6px;
+  border-radius: 20px;
   border: 1px solid #ccc;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
 #searchForm select:invalid {
@@ -69,19 +75,19 @@ section h2 {
 }
 
 #searchForm button {
-  height: 100%;
-  padding: 0.7rem 1.5rem;
+  padding: 0.6rem 1.5rem;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 4px;
   border: none;
-  background: #44bd32;
+  background: #4CAF50;
   color: white;
   transition: background 0.2s ease;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 #searchForm button:hover {
-  background: #3da62d;
+  background: #45a049;
 }
 
 /* Add Supplier Form */
@@ -89,33 +95,37 @@ form {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-width: 700px;
 }
 
-form input, form select, form button {
-  font-size: 1rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: 5px;
+form input, form select {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-family: inherit;
   border: 1px solid #ccc;
+  border-radius: 20px;
 }
 
 form input:focus, form select:focus {
   outline: none;
-  border-color: #2980b9;
+  border-color: #4CAF50;
 }
 
 form button {
-  background: #44bd32;
+  background: #4CAF50;
   color: white;
+  padding: 0.6rem 1rem;
   border: none;
-  font-weight: bold;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  font-weight: 600;
   align-self: flex-start;
   width: fit-content;
 }
 
 form button:hover {
-  background: #3da62d;
+  background: #45a049;
 }
 
 /* Supplier List Styles */
@@ -126,14 +136,14 @@ ul {
 }
 
 li.card {
-  background: #ecf0f1;
-  padding: 1rem;
+  padding: 1rem 0;
   margin-bottom: 0.75rem;
-  border-radius: 5px;
+  border-bottom: 1px solid #ddd;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
+  background: transparent;
 }
 
 .card-content > div {
@@ -147,59 +157,75 @@ li.card {
 }
 
 .btn {
-  padding: 0.4rem 0.8rem;
+  margin-left: 0.5rem;
+  padding: 0.6rem 1rem;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 4px;
   border: none;
   cursor: pointer;
 }
 
 .btn.red {
-  background: #e74c3c;
+  background: #f44336;
   color: white;
 }
 
 .btn.red:hover {
-  background: #c0392b;
+  background: #d32f2f;
 }
 
 .btn.blue {
-  background: #3498db;
+  background: #2196F3;
   color: white;
 }
 
 .btn.blue:hover {
-  background: #2980b9;
+  background: #1976D2;
 }
 
 /* --- Modal styles --- */
 .modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
   display: none;
-  align-items: center;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
   justify-content: center;
-  z-index: 1000;
+  align-items: center;
 }
 
 .modal-content {
-  background: white;
+  background: #fff;
   padding: 2rem;
   border-radius: 8px;
   width: 100%;
   max-width: 500px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
 .modal-content button.close {
-  align-self: flex-end;
-  background: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f44336;
+  color: white;
   border: none;
-  font-size: 1.2rem;
+  padding: 0.3rem 0.6rem;
+  font-weight: bold;
+  border-radius: 4px;
   cursor: pointer;
-  color: #999;
+}
+
+@keyframes fadeIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
