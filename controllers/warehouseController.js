@@ -60,7 +60,7 @@ exports.updateWarehouse = async (req, res) => {
   try {
     const { name, location, capacity } = req.body
     const updated = await Warehouse.findByIdAndUpdate(
-      req.params.id,
+      req.params._id,
       { name, location, capacity },
       { new: true }
     ).populate('products', 'name')
@@ -77,7 +77,7 @@ exports.updateWarehouse = async (req, res) => {
 // ❌ Delete
 exports.deleteWarehouse = async (req, res) => {
   try {
-    const deleted = await Warehouse.findByIdAndDelete(req.params.id)
+    const deleted = await Warehouse.findByIdAndDelete(req.params._id)
     if (!deleted) return res.status(404).json({ message: 'Warehouse not found' })
     res.json({ message: 'Warehouse deleted' })
   } catch (err) {
@@ -87,7 +87,7 @@ exports.deleteWarehouse = async (req, res) => {
 
 // 🧼 Format response
 const formatWarehouse = (w) => ({
-  id: w._id,
+  _id: w._id,
   name: w.name,
   location: w.location,
   capacity: w.capacity,

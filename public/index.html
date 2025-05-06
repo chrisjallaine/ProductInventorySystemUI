@@ -37,26 +37,40 @@
 
   <script>
     async function loadSummaryCards() {
-      const res = await fetch("http://localhost:5000/api/inventory");
+      const res  = await fetch("http://localhost:5000/api/inventory");
       const data = await res.json();
+      if (!Array.isArray(data) || !data.length) return;
 
-      if (!data || !data.length) return;
-
-      let highest = data[0], lowest = data[0];
+      // pick highest & lowest
+      let highest = data[0],
+          lowest  = data[0];
 
       data.forEach(item => {
         if (item.stock > highest.stock) highest = item;
-        if (item.stock < lowest.stock) lowest = item;
+        if (item.stock < lowest.stock)  lowest  = item;
       });
 
+      // --- use inventory.category_id & inventory.supplier_id, not product_id.category_id ---
       document.getElementById("highestStockCard").innerHTML = `
         <h3>Highest Stock</h3>
-        <p><strong>${highest.product_id.name}</strong><br>ID: ${highest.product_id._id}<br>Category: ${highest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${highest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${highest.stock}</p>
+        <p>
+          <strong>${highest.product_id.name}</strong><br/>
+          ID: ${highest.product_id._id}<br/>
+          Category: ${highest.category_id?.name || 'N/A'}<br/>
+          Supplier: ${highest.supplier_id?.name || 'N/A'}<br/>
+          Stock: ${highest.stock}
+        </p>
       `;
 
       document.getElementById("lowestStockCard").innerHTML = `
         <h3>Lowest Stock</h3>
-        <p><strong>${lowest.product_id.name}</strong><br>ID: ${lowest.product_id._id}<br>Category: ${lowest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${lowest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${lowest.stock}</p>
+        <p>
+          <strong>${lowest.product_id.name}</strong><br/>
+          ID: ${lowest.product_id._id}<br/>
+          Category: ${lowest.category_id?.name || 'N/A'}<br/>
+          Supplier: ${lowest.supplier_id?.name || 'N/A'}<br/>
+          Stock: ${lowest.stock}
+        </p>
       `;
     }
 
