@@ -97,3 +97,19 @@ const formatWarehouse = (w) => ({
   suppliers: (w.suppliers || []).map(s => s.name),
   categories: (w.categories || []).map(c => c.name),
 })
+
+// Update warehouse controller to handle current usage
+exports.updateWarehouseUtilization = async (req, res) => {
+  try {
+    const { currentUsage } = req.body;
+    const updated = await Warehouse.findByIdAndUpdate(
+      req.params._id,
+      { currentUsage },
+      { new: true }
+    );
+    if (!updated) return res.status(404).json({ message: 'Warehouse not found' });
+    res.json(formatWarehouse(updated));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}

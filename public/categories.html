@@ -34,6 +34,7 @@
     const fetchCategories = async () => {
       const res = await fetch('http://localhost:5000/api/categories/summaries');
       const categories = await res.json();
+      console.log('Fetched Categories:', categories); // Debugging line
       renderCategories(categories);
     };
 
@@ -51,8 +52,8 @@
             ${cat.products.map(p => `<li>${p.name}</li>`).join('')}
           </ul>
           <div class="button-group">
-            <button class="edit-btn" onclick="editCategory('${cat.id}', '${cat.name}')">Edit</button>
-            <button class="delete-btn" onclick="deleteCategory('${cat.id}')">Delete</button>
+            <button class="edit-btn" onclick="editCategory('${cat._id}', '${cat.name}')">Edit</button>
+            <button class="delete-btn" onclick="deleteCategory('${cat._id}')">Delete</button>
           </div>
         `;
         list.appendChild(li);

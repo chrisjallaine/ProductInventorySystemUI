@@ -74,39 +74,67 @@ exports.updateCategoryName = async (req, res) => {
   }
 };
 
-// 📊 Get One Category Summary
-exports.getCategorySummary = async (req, res) => {
-  try {
-    const category = await Category.findById(req.params.id).populate('products');
-    if (!category) return res.status(404).json({ message: 'Category not found' });
-
-    res.status(200).json({
-      category: {
-        id: category._id,
-        name: category.name,
-        productCount: category.products.length,
-        products: category.products
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// 📋 Get All Categories Summary
+// 📋 Get All Categories Summary with Product Count
 exports.getAllCategorySummaries = async (req, res) => {
   try {
-    const categories = await Category.find().populate('products');
+    const categories = await Category.aggregate([
+      {
+        $lookup: {
+          from: 'products', // The name of the products collection
+          localField: '_id', // Field from the categories collection
+          foreignField: 'category_id', // Field from the products collection
+          as: 'products' // Name of the new array field to add
+        }
+      },
+      {
+        $project: {
+          id: '$_id',
+          name: 1,
+          productCount: { $size: '$products' }, // Count of products
+          products: '$products' // Include the products array
+        }
+      }
+    ]);
 
-    const summaries = categories.map(cat => ({
-      id: cat._id,
-      name: cat.name,
-      productCount: cat.products.length,
-      products: cat.products
-    }));
+    console.log('Categories with Product Counts:', categories); // Debugging line
+    res.status(200).json(categories);
+  } catch (err) {
+    console.error('Error fetching categories:', err); // Log error
+    res.status(500).json({ error: err.message });
+  }
+};
 
-    res.status(200).json(summaries);
+
+// 📊 Get One Category Summary with Product Count
+exports.getCategorySummary = async (req, res) => {
+  try {
+    const category = await Category.aggregate([
+      {
+        $match: { _id: mongoose.Types.ObjectId(req.params.id) } // Match the category by ID
+      },
+      {
+        $lookup: {
+          from: 'products', // The name of the products collection
+          localField: '_id', // Field from the categories collection
+          foreignField: 'category_id._id', // Field from the products collection
+          as: 'products' // Name of the new array field to add
+        }
+      },
+      {
+        $project: {
+          id: '$_id',
+          name: 1,
+          productCount: { $size: '$products' }, // Count of products
+          products: '$products' // Include the products array
+        }
+      }
+    ]);
+
+    if (!category || category.length === 0) return res.status(404).json({ message: 'Category not found' });
+
+    res.status(200).json(category[0]); // Return the first (and only) category
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
