@@ -97,16 +97,30 @@ exports.createInventory = async (req, res) => {
       });
     }
 
+    // Check if adding stock exceeds warehouse capacity
+    const newTotalStock = (warehouse.currentUsage || 0) + stock;
+    if (newTotalStock > warehouse.capacity) {
+      return res.status(400).json({ 
+        warning: 'Adding this stock exceeds warehouse capacity', 
+        currentUsage: warehouse.currentUsage,
+        capacity: warehouse.capacity 
+      });
+    }
+
     const newInventory = new Inventory({
       product_id,
-      warehouse_id, // Now properly required
+      warehouse_id,
       stock,
       category_id: product.category_id,
       supplier_id: product.supplier_id
     });
 
     const savedInventory = await newInventory.save();
-    
+
+    // Update warehouse current usage
+    warehouse.currentUsage = newTotalStock;
+    await warehouse.save();
+
     res.status(201).json({
       message: 'Inventory created successfully',
       inventory: savedInventory
@@ -120,6 +134,7 @@ exports.createInventory = async (req, res) => {
     });
   }
 };
+
 
 // Update inventory
 exports.updateInventory = async (req, res) => {
