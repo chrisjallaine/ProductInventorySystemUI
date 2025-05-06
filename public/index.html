@@ -4,24 +4,107 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Whiplash Inventory Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
   <header>
-    <img src="https://lf16-tiktok-web.tiktokcdn-us.com/obj/tiktok-web-tx/music/music_aespa_campaign_share/resource/image/aespa_title.4f43711c.png" alt="Whiplash Logo" class="logo" />
+    <img src="https://i.ibb.co/mCzgFRQg/whiplash.png" alt="Whiplash Logo" class="logo" />
+    <div class="user-info">
+      <div class="user-avatar">U</div>
+    </div>
   </header>
 
   <main class="dashboard">
-    <h2>Hello, User!</h2>
+    <div class="dashboard-header">
+      <div class="greeting">
+        <h2>Hello, Nicole!</h2>
+        <p>What do you want to do today?</p>
+      </div>
+    </div>
+
+    <!-- Updated nav-cards section with square boxes and hover effects -->
     <ul class="nav-cards">
-      <li><a href="products.html"><i class="fas fa-box"></i><div><h2>Products</h2><p>Manage product listings.</p></div></a></li>
-      <li><a href="categories.html"><i class="fas fa-tags"></i><div><h2>Categories</h2><p>Organize by type.</p></div></a></li>
-      <li><a href="inventory.html"><i class="fas fa-warehouse"></i><div><h2>Inventory</h2><p>Track stock levels.</p></div></a></li>
-      <li><a href="suppliers.html"><i class="fas fa-truck"></i><div><h2>Suppliers</h2><p>Vendor details.</p></div></a></li>
-      <li><a href="warehouses.html"><i class="fas fa-building"></i><div><h2>Warehouses</h2><p>Manage locations.</p></div></a></li>
+      <li>
+        <a href="products.html" class="products-card">
+          <div class="card-icon">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="card-content">
+            <h2>Products</h2>
+            <p>Manage product listings.</p>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="categories.html" class="categories-card">
+          <div class="card-icon">
+            <i class="fas fa-tags"></i>
+          </div>
+          <div class="card-content">
+            <h2>Categories</h2>
+            <p>Organize by type.</p>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="inventory.html" class="inventory-card">
+          <div class="card-icon">
+            <i class="fas fa-warehouse"></i>
+          </div>
+          <div class="card-content">
+            <h2>Inventory</h2>
+            <p>Track stock levels.</p>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="suppliers.html" class="suppliers-card">
+          <div class="card-icon">
+            <i class="fas fa-truck"></i>
+          </div>
+          <div class="card-content">
+            <h2>Suppliers</h2>
+            <p>Vendor details.</p>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a href="warehouses.html" class="warehouses-card">
+          <div class="card-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="card-content">
+            <h2>Warehouses</h2>
+            <p>Manage locations.</p>
+          </div>
+        </a>
+      </li>
     </ul>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <h3>Total Products</h3>
+        <div class="stat-value" id="totalProducts">--</div>
+        <div class="stat-label">In inventory</div>
+      </div>
+      <div class="stat-card">
+        <h3>Categories</h3>
+        <div class="stat-value" id="totalCategories">--</div>
+        <div class="stat-label">Available</div>
+      </div>
+      <div class="stat-card">
+        <h3>Suppliers</h3>
+        <div class="stat-value" id="totalSuppliers">--</div>
+        <div class="stat-label">Active</div>
+      </div>
+      <div class="stat-card">
+        <h3>Warehouses</h3>
+        <div class="stat-value" id="totalWarehouses">--</div>
+        <div class="stat-label">Locations</div>
+      </div>
+    </div>
 
     <section class="summary-cards">
       <div class="summary" id="highestStockCard">
@@ -34,33 +117,331 @@
       </div>
     </section>
   </main>
+  
+  <!-- Quick Add Button -->
+  <div class="quick-add" id="quickAddBtn">
+    <i class="fas fa-plus"></i>
+  </div>
+
+  <!-- Quick Action Buttons -->
+  <div class="quick-actions" id="quickActions">
+    <div class="quick-action-btn" onclick="openModal('productModal')">
+      <i class="fas fa-box"></i>
+      <span>Add Product</span>
+    </div>
+    <div class="quick-action-btn" onclick="openModal('categoryModal')">
+      <i class="fas fa-tags"></i>
+      <span>Add Category</span>
+    </div>
+    <div class="quick-action-btn" onclick="openModal('supplierModal')">
+      <i class="fas fa-truck"></i>
+      <span>Add Supplier</span>
+    </div>
+    <div class="quick-action-btn" onclick="openModal('warehouseModal')">
+      <i class="fas fa-building"></i>
+      <span>Add Warehouse</span>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div class="modal" id="productModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('productModal')">&times;</span>
+      <div class="modal-header">
+        <h3>Add New Product</h3>
+      </div>
+      <form id="addProductForm">
+        <div class="form-group">
+          <label for="productName">Product Name</label>
+          <input type="text" id="productName" class="form-control" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+          <label for="productCategory">Category</label>
+          <select id="productCategory" class="form-control" required>
+            <option value="">Select Category</option>
+            <!-- Categories will be loaded here -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="productSupplier">Supplier</label>
+          <select id="productSupplier" class="form-control" required>
+            <option value="">Select Supplier</option>
+            <!-- Suppliers will be loaded here -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="productPrice">Price ($)</label>
+          <input type="number" id="productPrice" class="form-control" step="0.01" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="productDescription">Description</label>
+          <textarea id="productDescription" class="form-control" rows="3" placeholder="Enter description"></textarea>
+        </div>
+        <div class="form-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  <div class="modal" id="categoryModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('categoryModal')">&times;</span>
+      <div class="modal-header">
+        <h3>Add New Category</h3>
+      </div>
+      <form id="addCategoryForm">
+        <div class="form-group">
+          <label for="categoryName">Category Name</label>
+          <input type="text" id="categoryName" class="form-control" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+          <label for="categoryDescription">Description</label>
+          <textarea id="categoryDescription" class="form-control" rows="3" placeholder="Enter description"></textarea>
+        </div>
+        <div class="form-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Supplier Modal -->
+  <div class="modal" id="supplierModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('supplierModal')">&times;</span>
+      <div class="modal-header">
+        <h3>Add New Supplier</h3>
+      </div>
+      <form id="addSupplierForm">
+        <div class="form-group">
+          <label for="supplierName">Supplier Name</label>
+          <input type="text" id="supplierName" class="form-control" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+          <label for="supplierContact">Contact Person</label>
+          <input type="text" id="supplierContact" class="form-control" placeholder="Enter contact">
+        </div>
+        <div class="form-group">
+          <label for="supplierEmail">Email</label>
+          <input type="email" id="supplierEmail" class="form-control" placeholder="Enter email" required>
+        </div>
+        <div class="form-group">
+          <label for="supplierPhone">Phone</label>
+          <input type="tel" id="supplierPhone" class="form-control" placeholder="Enter phone">
+        </div>
+        <div class="form-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('supplierModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Supplier</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Warehouse Modal -->
+  <div class="modal" id="warehouseModal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('warehouseModal')">&times;</span>
+      <div class="modal-header">
+        <h3>Add New Warehouse</h3>
+      </div>
+      <form id="addWarehouseForm">
+        <div class="form-group">
+          <label for="warehouseName">Warehouse Name</label>
+          <input type="text" id="warehouseName" class="form-control" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+          <label for="warehouseLocation">Location</label>
+          <input type="text" id="warehouseLocation" class="form-control" placeholder="Enter location" required>
+        </div>
+        <div class="form-group">
+          <label for="warehouseCapacity">Storage Capacity</label>
+          <input type="number" id="warehouseCapacity" class="form-control" placeholder="Enter capacity">
+        </div>
+        <div class="form-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('warehouseModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Warehouse</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script>
-    async function loadSummaryCards() {
-      const res = await fetch("http://localhost:5000/api/inventory");
-      const data = await res.json();
+    // Toggle Quick Action Menu
+    const quickAddBtn = document.getElementById('quickAddBtn');
+    const quickActions = document.getElementById('quickActions');
 
-      if (!data || !data.length) return;
+    quickAddBtn.addEventListener('click', function() {
+      const isDisplayed = quickActions.style.display === 'flex';
+      quickActions.style.display = isDisplayed ? 'none' : 'flex';
+      quickAddBtn.innerHTML = isDisplayed ? '<i class="fas fa-plus"></i>' : '<i class="fas fa-times"></i>';
+    });
 
-      let highest = data[0], lowest = data[0];
-
-      data.forEach(item => {
-        if (item.stock > highest.stock) highest = item;
-        if (item.stock < lowest.stock) lowest = item;
-      });
-
-      document.getElementById("highestStockCard").innerHTML = `
-        <h3>Highest Stock</h3>
-        <p><strong>${highest.product_id.name}</strong><br>ID: ${highest.product_id._id}<br>Category: ${highest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${highest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${highest.stock}</p>
-      `;
-
-      document.getElementById("lowestStockCard").innerHTML = `
-        <h3>Lowest Stock</h3>
-        <p><strong>${lowest.product_id.name}</strong><br>ID: ${lowest.product_id._id}<br>Category: ${lowest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${lowest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${lowest.stock}</p>
-      `;
+    // Modal Functions
+    function openModal(modalId) {
+      document.getElementById(modalId).style.display = 'flex';
+      quickActions.style.display = 'none';
+      quickAddBtn.innerHTML = '<i class="fas fa-plus"></i>';
     }
 
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      const modals = document.getElementsByClassName('modal');
+      for (let modal of modals) {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      }
+    });
+
+    // Form Submission Handlers
+    document.getElementById('addProductForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Add your API call here to save the product data
+      alert('Product added successfully!');
+      closeModal('productModal');
+      // Reset form
+      this.reset();
+    });
+
+    document.getElementById('addCategoryForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Add your API call here to save the category data
+      alert('Category added successfully!');
+      closeModal('categoryModal');
+      // Reset form
+      this.reset();
+    });
+
+    document.getElementById('addSupplierForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Add your API call here to save the supplier data
+      alert('Supplier added successfully!');
+      closeModal('supplierModal');
+      // Reset form
+      this.reset();
+    });
+
+    document.getElementById('addWarehouseForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Add your API call here to save the warehouse data
+      alert('Warehouse added successfully!');
+      closeModal('warehouseModal');
+      // Reset form
+      this.reset();
+    });
+
+    // Load Summary Cards
+    async function loadSummaryCards() {
+      try {
+        const res = await fetch("http://localhost:5000/api/inventory");
+        const data = await res.json();
+
+        if (!data || !data.length) return;
+
+        let highest = data[0], lowest = data[0];
+
+        data.forEach(item => {
+          if (item.stock > highest.stock) highest = item;
+          if (item.stock < lowest.stock) lowest = item;
+        });
+
+        document.getElementById("highestStockCard").innerHTML = `
+          <h3>Highest Stock</h3>
+          <p><strong>${highest.product_id.name}</strong><br>ID: ${highest.product_id._id}<br>Category: ${highest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${highest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${highest.stock}</p>
+        `;
+
+        document.getElementById("lowestStockCard").innerHTML = `
+          <h3>Lowest Stock</h3>
+          <p><strong>${lowest.product_id.name}</strong><br>ID: ${lowest.product_id._id}<br>Category: ${lowest.product_id.category_id?.name || 'N/A'}<br>Supplier: ${lowest.product_id.supplier_id?.name || 'N/A'}<br>Stock: ${lowest.stock}</p>
+        `;
+      } catch (error) {
+        console.error("Error loading inventory data:", error);
+      }
+    }
+
+    // Load stats
+    async function loadStats() {
+      try {
+        // Load products count
+        fetch("http://localhost:5000/api/products")
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("totalProducts").textContent = data.length || 0;
+          });
+
+        // Load categories count
+        fetch("http://localhost:5000/api/categories")
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("totalCategories").textContent = data.length || 0;
+          });
+
+        // Load suppliers count
+        fetch("http://localhost:5000/api/suppliers")
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("totalSuppliers").textContent = data.length || 0;
+          });
+
+        // Load warehouses count
+        fetch("http://localhost:5000/api/warehouses")
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("totalWarehouses").textContent = data.length || 0;
+          });
+      } catch (error) {
+        console.error("Error loading stats:", error);
+      }
+    }
+
+    // Load data on page load
     loadSummaryCards();
+    loadStats();
+
+    // Load categories and suppliers for the product form
+    async function loadFormOptions() {
+      try {
+        // Load categories
+        fetch("http://localhost:5000/api/categories")
+          .then(res => res.json())
+          .then(data => {
+            const select = document.getElementById("productCategory");
+            data.forEach(category => {
+              const option = document.createElement("option");
+              option.value = category._id;
+              option.textContent = category.name;
+              select.appendChild(option);
+            });
+          });
+
+        // Load suppliers
+        fetch("http://localhost:5000/api/suppliers")
+          .then(res => res.json())
+          .then(data => {
+            const select = document.getElementById("productSupplier");
+            data.forEach(supplier => {
+              const option = document.createElement("option");
+              option.value = supplier._id;
+              option.textContent = supplier.name;
+              select.appendChild(option);
+            });
+          });
+      } catch (error) {
+        console.error("Error loading form options:", error);
+      }
+    }
+
+    loadFormOptions();
   </script>
+</body>
+</html>
 </body>
 </html>
