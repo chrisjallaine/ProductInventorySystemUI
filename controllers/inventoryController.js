@@ -1,9 +1,9 @@
+const mongoose = require('mongoose');
 const Inventory = require('../models/Inventory');
 const Product = require('../models/Product');
 const Warehouse = require('../models/Warehouse');
-const mongoose = require('mongoose');
 
-// Get all inventory
+// Get all inventory items
 exports.getAllInventory = async (req, res) => {
   try {
     const inventory = await Inventory.find()
@@ -11,22 +11,22 @@ exports.getAllInventory = async (req, res) => {
       .populate('warehouse_id')
       .populate('category_id')
       .populate('supplier_id');
+
     res.json(inventory);
   } catch (err) {
     console.error('[getAllInventory] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to fetch inventory',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Failed to fetch inventory', details: err.message });
   }
 };
 
-// Search inventory by product, category, supplier, or warehouse
+// Search inventory by type and value
 exports.searchInventory = async (req, res) => {
   const { type, value } = req.params;
-
   const searchVal = value?.trim();
-  if (!searchVal) return res.status(400).json({ error: 'Search value is required' });
+
+  if (!searchVal) {
+    return res.status(400).json({ error: 'Search value is required' });
+  }
 
   try {
     const inventory = await Inventory.find()
@@ -55,55 +55,31 @@ exports.searchInventory = async (req, res) => {
   }
 };
 
-// Create Inventory
+// Create a new inventory entry
 exports.createInventory = async (req, res) => {
-  console.log('[createInventory] req.body =', req.body);
-
   const { product_id, warehouse_id, stock } = req.body;
 
-  // Validate required fields
   if (!product_id || !warehouse_id || typeof stock !== 'number') {
-    return res.status(400).json({ 
-      error: 'product_id, warehouse_id, and numeric stock are required' 
-    });
+    return res.status(400).json({ error: 'product_id, warehouse_id, and numeric stock are required' });
   }
 
-  // Validate MongoDB ObjectIDs
-  if (!mongoose.Types.ObjectId.isValid(product_id)) {
-    return res.status(400).json({ 
-      error: 'Invalid product_id format' 
-    });
-  }
-  if (!mongoose.Types.ObjectId.isValid(warehouse_id)) {
-    return res.status(400).json({ 
-      error: 'Invalid warehouse_id format' 
-    });
+  if (!mongoose.Types.ObjectId.isValid(product_id) || !mongoose.Types.ObjectId.isValid(warehouse_id)) {
+    return res.status(400).json({ error: 'Invalid product_id or warehouse_id format' });
   }
 
   try {
-    // Verify product exists
     const product = await Product.findById(product_id);
-    if (!product) {
-      return res.status(404).json({ 
-        error: 'Product not found' 
-      });
-    }
+    if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Verify warehouse exists
     const warehouse = await Warehouse.findById(warehouse_id);
-    if (!warehouse) {
-      return res.status(404).json({ 
-        error: 'Warehouse not found' 
-      });
-    }
+    if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
 
-    // Check if adding stock exceeds warehouse capacity
     const newTotalStock = (warehouse.currentUsage || 0) + stock;
     if (newTotalStock > warehouse.capacity) {
-      return res.status(400).json({ 
-        warning: 'Adding this stock exceeds warehouse capacity', 
+      return res.status(400).json({
+        warning: 'Adding this stock exceeds warehouse capacity',
         currentUsage: warehouse.currentUsage,
-        capacity: warehouse.capacity 
+        capacity: warehouse.capacity
       });
     }
 
@@ -117,50 +93,35 @@ exports.createInventory = async (req, res) => {
 
     const savedInventory = await newInventory.save();
 
-    // Update warehouse current usage
     warehouse.currentUsage = newTotalStock;
     await warehouse.save();
 
-    res.status(201).json({
-      message: 'Inventory created successfully',
-      inventory: savedInventory
-    });
-
+    res.status(201).json({ message: 'Inventory created successfully', inventory: savedInventory });
   } catch (err) {
     console.error('[createInventory] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to create inventory',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Failed to create inventory', details: err.message });
   }
 };
 
-
-// Update inventory
+// Update inventory entry
 exports.updateInventory = async (req, res) => {
+  const { id } = req.params;
+  const { product_id, warehouse_id, stock } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid inventory ID' });
+  }
+
+  const updateData = { updatedAt: new Date() };
+
   try {
-    const { id } = req.params;
-    const { product_id, warehouse_id, stock } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ 
-        error: 'Invalid inventory ID' 
-      });
-    }
-
-    const updateData = { updatedAt: new Date() };
-
     if (product_id) {
       if (!mongoose.Types.ObjectId.isValid(product_id)) {
-        return res.status(400).json({ 
-          error: 'Invalid product_id' 
-        });
+        return res.status(400).json({ error: 'Invalid product_id' });
       }
-      const product = await Product.findById(product_id)
-        .populate(['category_id', 'supplier_id']);
-      if (!product) return res.status(404).json({ 
-        error: 'Product not found' 
-      });
+
+      const product = await Product.findById(product_id).populate(['category_id', 'supplier_id']);
+      if (!product) return res.status(404).json({ error: 'Product not found' });
 
       updateData.product_id = product._id;
       updateData.category_id = product.category_id?._id || null;
@@ -169,18 +130,14 @@ exports.updateInventory = async (req, res) => {
 
     if (warehouse_id) {
       if (!mongoose.Types.ObjectId.isValid(warehouse_id)) {
-        return res.status(400).json({ 
-          error: 'Invalid warehouse_id' 
-        });
+        return res.status(400).json({ error: 'Invalid warehouse_id' });
       }
       updateData.warehouse_id = warehouse_id;
     }
 
     if (stock !== undefined) {
       if (typeof stock !== 'number') {
-        return res.status(400).json({ 
-          error: 'Stock must be a number' 
-        });
+        return res.status(400).json({ error: 'Stock must be a number' });
       }
       updateData.stock = stock;
     }
@@ -192,72 +149,43 @@ exports.updateInventory = async (req, res) => {
     );
 
     if (!updatedInventory) {
-      return res.status(404).json({ 
-        error: 'Inventory not found' 
-      });
+      return res.status(404).json({ error: 'Inventory not found' });
     }
 
-    res.json({
-      message: 'Inventory updated successfully',
-      inventory: updatedInventory
-    });
-
+    res.json({ message: 'Inventory updated successfully', inventory: updatedInventory });
   } catch (err) {
     console.error('[updateInventory] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to update inventory',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Failed to update inventory', details: err.message });
   }
 };
 
-// Delete inventory
+// Delete inventory entry
 exports.deleteInventory = async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid inventory ID' });
+  }
+
   try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ 
-        error: 'Invalid inventory ID' 
-      });
-    }
-
     const deletedInventory = await Inventory.findByIdAndDelete(id);
-
     if (!deletedInventory) {
-      return res.status(404).json({ 
-        error: 'Inventory not found' 
-      });
+      return res.status(404).json({ error: 'Inventory not found' });
     }
 
-    res.json({ 
-      message: 'Inventory deleted successfully',
-      inventory: deletedInventory 
-    });
-
+    res.json({ message: 'Inventory deleted successfully', inventory: deletedInventory });
   } catch (err) {
     console.error('[deleteInventory] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to delete inventory',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Failed to delete inventory', details: err.message });
   }
 };
 
-// Low stock items
+// Get low stock items in a warehouse
 exports.getLowStockItems = async (req, res) => {
   const { warehouseId } = req.query;
 
-  if (!warehouseId) {
-    return res.status(400).json({ 
-      error: 'Warehouse ID is required' 
-    });
-  }
-
-  if (!mongoose.Types.ObjectId.isValid(warehouseId)) {
-    return res.status(400).json({ 
-      error: 'Invalid warehouse ID format' 
-    });
+  if (!warehouseId || !mongoose.Types.ObjectId.isValid(warehouseId)) {
+    return res.status(400).json({ error: 'Valid warehouse ID is required' });
   }
 
   try {
@@ -265,17 +193,32 @@ exports.getLowStockItems = async (req, res) => {
       warehouse_id: warehouseId,
       stock: { $lt: 20 }
     })
-    .populate('product_id')
-    .populate('warehouse_id')
-    .populate('category_id')
-    .populate('supplier_id');
+      .populate('product_id')
+      .populate('warehouse_id')
+      .populate('category_id')
+      .populate('supplier_id');
 
     res.json(lowStockItems);
   } catch (err) {
     console.error('[getLowStockItems] Error:', err);
-    res.status(500).json({ 
-      error: 'Failed to fetch low stock items',
-      details: err.message 
-    });
+    res.status(500).json({ error: 'Failed to fetch low stock items', details: err.message });
+  }
+};
+
+// Get product details by ID
+exports.getProductDetails = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate('category')
+      .populate('supplier');
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(product);
+  } catch (err) {
+    console.error('[getProductDetails] Error:', err);
+    res.status(500).json({ message: 'Error retrieving product', details: err.message });
   }
 };
