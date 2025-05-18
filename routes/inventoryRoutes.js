@@ -3,32 +3,29 @@ const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
 const Product = require('../models/Product');
 
-// Inventory Routes
-router.get('/low-stock', inventoryController.getLowStockItems);
+// ==========================
+//        Inventory Routes
+// ==========================
 
-router.get('/products/:id', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id)
-      .populate('category')
-      .populate('supplier');
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    res.json(product);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error retrieving product' });
-  }
-});
-
+// Get all inventory items
 router.get('/', inventoryController.getAllInventory);
+
+// Create a new inventory item
 router.post('/', inventoryController.createInventory);
+
+// Update an inventory item
 router.put('/:id', inventoryController.updateInventory);
+
+// Delete an inventory item
 router.delete('/:id', inventoryController.deleteInventory);
 
-// 🔥 This must come last to avoid catching other routes
+// Get low stock items
+router.get('/low-stock', inventoryController.getLowStockItems);
+
+// Get detailed product info by ID
+router.get('/products/:id', inventoryController.getProductDetails);
+
+// Search by type and value
 router.get('/:type/:value', inventoryController.searchInventory);
 
 module.exports = router;
