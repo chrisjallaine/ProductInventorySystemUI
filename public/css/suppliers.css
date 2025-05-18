@@ -1,10 +1,16 @@
-/* Base Styles */
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background: #f7f9fc;
+  color: #333;
   margin: 0;
   padding: 0;
-  color: #333;
 }
 
 header {
@@ -25,89 +31,123 @@ header {
 
 h1 {
   margin: 0;
+  font-size: 2rem;
   font-weight: 600;
   color: white;
 }
 
+/* Layout */
 main {
   padding: 2rem;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 2rem;
 }
 
-/* Sections */
+.button-primary {
+  background: #4CAF50;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  align-self: flex-start;
+  width: fit-content;
+}
+
+.button-primary:hover {
+  background: #45a049;
+}
+
+/* Section Wrappers */
 .form-section, .list-section {
   background: white;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 section h2 {
   margin-bottom: 1rem;
 }
 
-/* Search Form - Full Width Layout */
-#searchForm {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 700px;
-}
-
-#searchForm select,
-#searchForm input[type="text"] {
-  flex: 1;
-  min-width: 250px;
-  font-size: 1rem;
-  padding: 0.65rem 1rem;
-  border-radius: 20px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  font-family: inherit;
-}
-
-#searchForm select:invalid {
-  color: gray;
-}
-
-#searchForm button {
-  padding: 0.6rem 1.5rem;
-  font-weight: 600;
-  border-radius: 4px;
-  border: none;
-  background: #4CAF50;
-  color: white;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-#searchForm button:hover {
-  background: #45a049;
-}
-
-/* Add Supplier Form */
-form {
+/* Search Form (Warehouse) */
+#searchForm,
+#supplierSearchForm {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   max-width: 700px;
+  width: 100%;
 }
 
-form input, form select {
+#searchForm input[type="text"],
+#searchForm select,
+#supplierSearchForm input[type="text"],
+#supplierSearchForm select {
   width: 100%;
-  margin-bottom: 1rem;
   padding: 0.5rem;
   font-family: inherit;
   border: 1px solid #ccc;
   border-radius: 20px;
 }
 
-form input:focus, form select:focus {
+#searchForm input:focus,
+#searchForm select:focus,
+#supplierSearchForm input:focus,
+#supplierSearchForm select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+#searchForm button,
+#supplierSearchForm button {
+  background: #4CAF50;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  align-self: flex-start;
+  width: fit-content;
+}
+
+#searchForm button:hover,
+#supplierSearchForm button:hover {
+  background: #45a049;
+}
+
+#searchForm select:invalid,
+#supplierSearchForm select:invalid {
+  color: gray;
+}
+
+/* Add Form & Section Inputs (Warehouse & Supplier) */
+form, section form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 700px;
+  width: 100%;
+}
+
+form input, form select,
+section input, section select {
+  width: 100%;
+  padding: 0.5rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+}
+
+form input:focus, form select:focus,
+section input:focus, section select:focus {
   outline: none;
   border-color: #4CAF50;
 }
@@ -128,14 +168,52 @@ form button:hover {
   background: #45a049;
 }
 
-/* Supplier List Styles */
+/* Supplier Form Override (if any) */
+#supplierForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 700px;
+  width: 100%;
+}
+
+#supplierForm input, #supplierForm select {
+  width: 100%;
+  padding: 0.5rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+}
+
+#supplierForm input:focus, #supplierForm select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+#supplierForm button {
+  background: #4CAF50;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  align-self: flex-start;
+  width: fit-content;
+}
+
+#supplierForm button:hover {
+  background: #45a049;
+}
+
+/* List Card Styling */
 ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-li.card {
+.card {
   padding: 1rem 0;
   margin-bottom: 0.75rem;
   border-bottom: 1px solid #ddd;
@@ -144,6 +222,15 @@ li.card {
   align-items: flex-start;
   flex-wrap: wrap;
   background: transparent;
+  border-radius: 0;
+  line-height: 1.6;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .card-content > div {
@@ -154,9 +241,10 @@ li.card {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.btn {
+.card-actions button {
   margin-left: 0.5rem;
   padding: 0.6rem 1rem;
   font-size: 0.9rem;
@@ -164,8 +252,10 @@ li.card {
   border-radius: 4px;
   border: none;
   cursor: pointer;
+  color: white;
 }
 
+/* Action Buttons */
 .btn.red {
   background: #f44336;
   color: white;
@@ -184,48 +274,109 @@ li.card {
   background: #1976D2;
 }
 
-/* --- Modal styles --- */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 100;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  justify-content: center;
-  align-items: center;
+/* Dialog/Modal */
+dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  margin: auto;
+  text-align: left;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  font-family: 'Poppins', sans-serif;
 }
 
-.modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 500px;
-  position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+#updateForm {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
 }
 
-.modal-content button.close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #f44336;
+#updateForm menu {
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+#updateForm button[type="submit"] {
+  background: #4CAF50;
   color: white;
+  padding: 0.6rem 1.5rem;
   border: none;
-  padding: 0.3rem 0.6rem;
-  font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 600;
 }
 
-@keyframes fadeIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+#updateForm button[type="reset"] {
+  background: #f44336;
+  color: white;
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#updateForm button[type="submit"]:hover {
+  background: #45a049;
+}
+
+#updateForm button[type="reset"]:hover {
+  background: #d32f2f;
+}
+
+/* Modal overlay */
+.modal {
+  position: fixed;          /* Fix it relative to viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;             /* Full viewport width */
+  height: 100vh;            /* Full viewport height */
+  background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark backdrop */
+  display: flex;            /* Use flexbox to center content */
+  justify-content: center;  /* Horizontal center */
+  align-items: center;      /* Vertical center */
+  z-index: 1000;            /* On top of everything */
+  visibility: hidden;       /* Hide by default */
+  opacity: 0;               /* Make invisible */
+  transition: opacity 0.3s ease;
+}
+
+/* Show modal */
+.modal.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Modal content box */
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;       /* for close button positioning */
+}
+
+/* Close button */
+.modal-content .close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-weight: 700;
+  color: #333;
 }
