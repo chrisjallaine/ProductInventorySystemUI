@@ -259,6 +259,7 @@ ul {
 .btn.red {
   background: #f44336;
   color: white;
+  border-radius: 20px;
 }
 
 .btn.red:hover {
@@ -268,6 +269,7 @@ ul {
 .btn.blue {
   background: #2196F3;
   color: white;
+  border-radius: 20px;
 }
 
 .btn.blue:hover {
@@ -311,7 +313,7 @@ dialog::backdrop {
   color: white;
   padding: 0.6rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -321,7 +323,7 @@ dialog::backdrop {
   color: white;
   padding: 0.6rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
   font-weight: 600;
 }
@@ -334,49 +336,39 @@ dialog::backdrop {
   background: #d32f2f;
 }
 
-/* Modal overlay */
+/* Modal Container */
 .modal {
-  position: fixed;          /* Fix it relative to viewport */
-  top: 0;
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 9999;
   left: 0;
-  width: 100vw;             /* Full viewport width */
-  height: 100vh;            /* Full viewport height */
-  background: rgba(0, 0, 0, 0.6); /* Semi-transparent dark backdrop */
-  display: flex;            /* Use flexbox to center content */
-  justify-content: center;  /* Horizontal center */
-  align-items: center;      /* Vertical center */
-  z-index: 1000;            /* On top of everything */
-  visibility: hidden;       /* Hide by default */
-  opacity: 0;               /* Make invisible */
-  transition: opacity 0.3s ease;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent black */
+  justify-content: center;
+  align-items: center;
 }
 
-/* Show modal */
-.modal.show {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Modal content box */
+/* Modal Content Box */
 .modal-content {
-  background: white;
+  background-color: #fff;
+  padding: 20px;
   border-radius: 8px;
-  padding: 2rem;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  position: relative;       /* for close button positioning */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  position: relative;
 }
 
-/* Close button */
+/* Close Button */
 .modal-content .close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  right: 10px;
+  top: 10px;
   background: transparent;
   border: none;
-  font-size: 1.5rem;
+  font-size: 24px;
   cursor: pointer;
-  font-weight: 700;
-  color: #333;
 }
+
