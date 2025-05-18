@@ -1,12 +1,15 @@
 const Warehouse = require('../models/Warehouse')
 const Product = require('../models/Product')
 const Supplier = require('../models/Supplier')
+const Inventory = require('../models/Inventory')
+const mongoose = require('mongoose')       
+
 
 // ➕ Create
 exports.createWarehouse = async (req, res) => {
   try {
-    const { location, capacity } = req.body; // Removed name
-    const warehouse = new Warehouse({ location, capacity });
+    const { name, location, capacity } = req.body; 
+    const warehouse = new Warehouse({ name, location, capacity });
     const saved = await warehouse.save();
     res.status(201).json(formatWarehouse(saved));
   } catch (err) {
@@ -14,25 +17,42 @@ exports.createWarehouse = async (req, res) => {
   }
 }
 
+exports.getWarehouseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const warehouse = await Warehouse.findById(id)
+      .populate('products', 'name')
+      .populate('suppliers', 'name')
+      .populate('categories', 'name');
+
+    if (!warehouse) {
+      return res.status(404).json({ message: 'Warehouse not found' });
+    }
+
+    res.json(formatWarehouse(warehouse));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // ✏️ Update
 exports.updateWarehouse = async (req, res) => {
   try {
-    const { location, capacity } = req.body; // Removed name
+    const { name, location, capacity } = req.body;
     const updated = await Warehouse.findByIdAndUpdate(
-      req.params._id,
-      { location, capacity },
+      req.params.id,
+      { name, location, capacity },
       { new: true }
     ).populate('products', 'name')
      .populate('suppliers', 'name')
      .populate('categories', 'name');
-
+  
     if (!updated) return res.status(404).json({ message: 'Warehouse not found' });
     res.json(formatWarehouse(updated));
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 }
-
 
 // 📋 Get all
 exports.getAllWarehouses = async (_req, res) => {
@@ -78,32 +98,31 @@ exports.getWarehousesByLocation = async (req, res) => {
 // ❌ Delete
 exports.deleteWarehouse = async (req, res) => {
   try {
-    const { _id } = req.params;
-    // Validate the warehouse ID
-    if (!mongoose.Types.ObjectId.isValid(_id)) {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: 'Invalid warehouse ID' });
     }
-    // Check if the warehouse exists before attempting to delete
-    const warehouse = await Warehouse.findById(_id);
+
+    const warehouse = await Warehouse.findById(id);
     if (!warehouse) {
       return res.status(404).json({ message: 'Warehouse not found' });
     }
-    // Delete related inventories
-    await Inventory.deleteMany({ warehouse_id: _id });
-    // Delete the warehouse
-    await Warehouse.findByIdAndDelete(_id);
+
+    await Inventory.deleteMany({ warehouse_id: id });
+    await Warehouse.findByIdAndDelete(id);
+
     res.json({ message: 'Warehouse deleted' });
   } catch (err) {
-    console.error('[deleteWarehouse] Error:', err); // Log the error for debugging
+    console.error('[deleteWarehouse] Error:', err);
     res.status(500).json({ message: err.message });
   }
-}
-const mongoose = require('mongoose')        
+} 
 
 
 // 🧼 Format response
 const formatWarehouse = (w) => ({
   _id: w._id,
+  name: w.name,
   location: w.location, // Only keep location
   capacity: w.capacity,
   currentUsage: w.currentUsage ?? 0,
@@ -112,20 +131,3 @@ const formatWarehouse = (w) => ({
   suppliers: (w.suppliers || []).map(s => s.name),
   categories: (w.categories || []).map(c => c.name),
 });
-
-
-// Update warehouse controller to handle current usage
-exports.updateWarehouseUtilization = async (req, res) => {
-  try {
-    const { currentUsage } = req.body;
-    const updated = await Warehouse.findByIdAndUpdate(
-      req.params._id,
-      { currentUsage },
-      { new: true }
-    );
-    if (!updated) return res.status(404).json({ message: 'Warehouse not found' });
-    res.json(formatWarehouse(updated));
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-}
