@@ -4,9 +4,9 @@ const {
   getAllWarehouses,
   getWarehouseByName,
   getWarehousesByLocation,
+  getWarehouseById,
   deleteWarehouse,
   updateWarehouse,
-  updateWarehouseUtilization
 } = require("../controllers/warehouseController")
 
 const router = express.Router()
@@ -16,6 +16,8 @@ router.post("/", createWarehouse)
 
 // 📋 Get all Warehouses with details
 router.get("/", getAllWarehouses)
+
+router.get("/:id", getWarehouseById)
 
 // 🔍 Get by Warehouse Name
 router.get("/name/:name", getWarehouseByName)
@@ -28,8 +30,5 @@ router.put("/:id", updateWarehouse)
 
 // ❌ Delete Warehouse
 router.delete("/:id", deleteWarehouse)
-
-// Update Inventory in Warehouse
-router.put("/warehouse/:id/utilization", updateWarehouseUtilization)
 
 module.exports = router
