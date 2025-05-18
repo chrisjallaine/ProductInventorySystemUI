@@ -6,25 +6,6 @@
   <title>Warehouse Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/warehouses.css" />
-  <style>
-    dialog::backdrop {
-      background: rgba(0, 0, 0, 0.4);
-    }
-
-    dialog {
-      border: none;
-      border-radius: 8px;
-      padding: 20px;
-      max-width: 400px;
-      margin: auto;
-    }
-
-    dialog form {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-  </style>
 </head>
 <body>
   <header>
@@ -64,18 +45,19 @@
     </section>
   </main>
 
-  <dialog id="updateModal">
-    <form method="dialog" id="updateForm">
-      <input type="hidden" id="updateId" />
-      <input type="text" id="updateName" placeholder="Name" required />
-      <input type="text" id="updateLocation" placeholder="Location" required />
-      <input type="number" id="updateCapacity" placeholder="Capacity" required />
-      <menu>
-        <button type="submit">Update</button>
-        <button type="reset" onclick="updateModal.close()">Cancel</button>
-      </menu>
-    </form>
-  </dialog>
+  <div class="modal" id="updateModal">
+    <div class="modal-content">
+      <button class="close" onclick="hideModal()">×</button>
+      <h3>Update Warehouse</h3>
+      <form id="updateForm">
+        <input type="hidden" id="updateId" />
+        <input type="text" id="updateName" placeholder="Name" required />
+        <input type="text" id="updateLocation" placeholder="Location" required />
+        <input type="number" id="updateCapacity" placeholder="Capacity" required />
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
 
   <script>
     const $ = id => document.getElementById(id)
@@ -115,11 +97,15 @@
     }
 
     const openUpdateModal = (w) => {
-      $('updateId').value = w.id
+      $('updateId').value = w._id
       $('updateName').value = w.name
       $('updateLocation').value = w.location
       $('updateCapacity').value = w.capacity
-      updateModal.showModal()
+      updateModal.style.display = 'flex'
+    }
+
+    const hideModal = () => {
+      updateModal.style.display = 'none'
     }
 
     $('updateForm').addEventListener('submit', async e => {
@@ -135,7 +121,7 @@
         body: JSON.stringify({ name, location, capacity })
       })
 
-      updateModal.close()
+      hideModal()
       fetchWarehouses()
       refreshSearch()
     })
@@ -152,7 +138,7 @@
           </div>
           <div class="card-actions">
             <button class="btn blue" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
-            <button class="btn red" onclick="deleteWarehouse('${w.id}')">Delete</button>
+            <button class="btn red" onclick="deleteWarehouse('${w._id}')">Delete</button>
           </div>
         </li>
       `).join('')
