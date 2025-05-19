@@ -29,11 +29,14 @@ header {
   font-weight: 600;
 }
 
-h1 {
+h1, h2, h3 {
   margin: 0;
-  font-size: 2rem;
   font-weight: 600;
-  color: white;
+  color: inherit;
+}
+
+h1 {
+  font-size: 2rem;
 }
 
 /* Layout */
@@ -45,7 +48,9 @@ main {
   gap: 2rem;
 }
 
-.button-primary {
+/* Buttons */
+.button-primary, 
+button[type="submit"] {
   background: #3b3b3b;
   color: white;
   padding: 0.6rem 1rem;
@@ -57,11 +62,38 @@ main {
   width: fit-content;
 }
 
-.button-primary:hover {
+.button-primary:hover, 
+button[type="submit"]:hover {
   background: #848484;
 }
 
-/* Section Wrappers */
+.btn {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  color: white;
+}
+
+.btn-update {
+  background: #2196F3;
+}
+
+.btn-update:hover {
+  background: #1976D2;
+}
+
+.btn-delete {
+  background: #f44336;
+}
+
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+/* Sections */
 .form-section, .list-section {
   background: white;
   padding: 1.5rem;
@@ -76,17 +108,25 @@ section h2 {
   margin-bottom: 1rem;
 }
 
-/* Search Form */
-#searchForm {
+/* Forms */
+form {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-width: 700px;
   width: 100%;
 }
 
-#searchForm input[type="text"],
-#searchForm select {
+.form-group {
+  margin-bottom: 0.75rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+input, select {
   width: 100%;
   padding: 0.5rem;
   font-family: inherit;
@@ -94,77 +134,23 @@ section h2 {
   border-radius: 20px;
 }
 
-#searchForm input:focus,
-#searchForm select:focus {
+input:focus, select:focus {
   outline: none;
   border-color: #4CAF50;
 }
 
-#searchForm button {
-  background: #3b3b3b;
-  color: white;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  align-self: flex-start;
-  width: fit-content;
-}
-
-#searchForm button:hover {
-  background: #848484;
-}
-
-#searchForm select:invalid {
-  color: gray;
-}
-
-/* Add Form & Section Inputs */
-form, section form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 700px;
-  width: 100%;
-}
-
-form input, form select,
-section input, section select {
-  width: 100%;
-  padding: 0.5rem;
-  font-family: inherit;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-}
-
-form input:focus, form select:focus,
-section input:focus, section select:focus {
-  outline: none;
-  border-color: #4CAF50;
-}
-
-form button {
-  background: #3b3b3b;
-  color: white;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  align-self: flex-start;
-  width: fit-content;
-}
-
-form button:hover {
-  background: #848484;
-}
-
-/* Warehouse List */
+/* List Styles */
 ul {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 1rem 0 0;
+}
+
+.message-text {
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  padding: 1rem;
 }
 
 .card {
@@ -175,16 +161,13 @@ ul {
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  background: transparent;
-  border-radius: 0;
-  line-height: 1.6;
 }
 
 .card-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  margin-bottom: 0.5rem;
 }
 
 .card-content > div {
@@ -195,130 +178,37 @@ ul {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
-  flex-wrap: wrap;
 }
 
-.card-actions button {
-  margin-left: 0.5rem;
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  color: white;
-}
-
-/* Action Buttons */
-.btn.red {
-  background: #f44336;
-  color: white;
-  border-radius: 20px;
-}
-
-.btn.red:hover {
-  background: #d32f2f;
-}
-
-.btn.blue {
-  background: #2196F3;
-  color: white;
-  border-radius: 20px;
-}
-
-.btn.blue:hover {
-  background: #1976D2;
-}
-
-/* Dialog/Modal */
-dialog {
-  border: none;
-  border-radius: 8px;
-  padding: 2rem;
-  max-width: 500px;
-  width: 90%;
-  margin: auto;
-  text-align: left;
-  background: #fff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  font-family: 'Poppins', sans-serif;
-}
-
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.6);
-}
-
-#updateForm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-#updateForm menu {
-  display: flex;
-  justify-content: space-between;
-  padding: 0;
-  margin-top: 1rem;
-}
-
-#updateForm button[type="submit"] {
-  background: #3b3b3b;
-  color: white;
-  padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-#updateForm button[type="reset"] {
-  background: #f44336;
-  color: white;
-  padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-#updateForm button[type="submit"]:hover {
-  background: #848484;
-}
-
-#updateForm button[type="reset"]:hover {
-  background: #d32f2f;
-}
-
+/* Modal */
 .modal {
   display: none;
   position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 9999;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
   background: #fff;
-  padding: 20px;
+  padding: 1.5rem;
   border-radius: 8px;
-  min-width: 300px;
+  width: 90%;
   max-width: 400px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   position: relative;
 }
 
-.close {
+.close-btn {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 1.2rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
+  font-size: 1.5rem;
   cursor: pointer;
 }

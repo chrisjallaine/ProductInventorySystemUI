@@ -25,12 +25,13 @@
         <input type="text" id="searchValue" placeholder="Enter value..." required />
         <button type="submit">Search</button>
       </form>
+      <div id="searchStatus" class="status-message"></div>
       <ul id="searchResults"></ul>
     </section>
 
     <section class="form-section">
       <h2>Add Warehouse</h2>
-      <form id="addWarehouseForm">
+      <form id="addForm">
         <input type="text" name="name" placeholder="Name" required />
         <input type="text" name="location" placeholder="Location" required />
         <input type="number" name="capacity" placeholder="Capacity" required />
@@ -47,13 +48,22 @@
 
   <div class="modal" id="updateModal">
     <div class="modal-content">
-      <button class="close" onclick="hideModal()">×</button>
-      <h3>Update Warehouse</h3>
+      <button class="close-btn" onclick="hideModal()">×</button>
+      <h2>Update Warehouse</h2>
       <form id="updateForm">
         <input type="hidden" id="updateId" />
-        <input type="text" id="updateName" placeholder="Name" required />
-        <input type="text" id="updateLocation" placeholder="Location" required />
-        <input type="number" id="updateCapacity" placeholder="Capacity" required />
+        <div class="form-group">
+          <label for="updateName">Name:</label>
+          <input type="text" id="updateName" placeholder="Name" required />
+        </div>
+        <div class="form-group">
+          <label for="updateLocation">Location:</label>
+          <input type="text" id="updateLocation" placeholder="Location" required />
+        </div>
+        <div class="form-group">
+          <label for="updateCapacity">Capacity:</label>
+          <input type="number" id="updateCapacity" placeholder="Capacity" required />
+        </div>
         <button type="submit">Save Changes</button>
       </form>
     </div>
@@ -66,24 +76,10 @@
 
     let latestSearch = null
 
-    $('addWarehouseForm').addEventListener('submit', async e => {
-      e.preventDefault()
-      const formData = new FormData(e.target)
-      const body = Object.fromEntries(formData.entries())
-      await fetch('http://localhost:5000/api/warehouses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-      alert('Warehouse added!')
-      e.target.reset()
-      fetchWarehouses()
-    })
-
     const fetchWarehouses = async () => {
       const res = await fetch('http://localhost:5000/api/warehouses')
       const data = await res.json()
-      renderWarehouseList(data, 'warehouseList')
+      renderList(data, 'warehouseList')
     }
 
     const deleteWarehouse = async id => {
@@ -108,6 +104,20 @@
       updateModal.style.display = 'none'
     }
 
+    $('addForm').addEventListener('submit', async e => {
+      e.preventDefault()
+      const formData = new FormData(e.target)
+      const body = Object.fromEntries(formData.entries())
+      await fetch('http://localhost:5000/api/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      alert('Warehouse added!')
+      e.target.reset()
+      fetchWarehouses()
+    })
+
     $('updateForm').addEventListener('submit', async e => {
       e.preventDefault()
       const id = $('updateId').value
@@ -126,8 +136,14 @@
       refreshSearch()
     })
 
-    const renderWarehouseList = (data, targetId) => {
+    const renderList = (data, targetId, statusElement = null) => {
       const ul = $(targetId)
+      if (!data.length) {
+        if (statusElement) showMessage(statusElement, 'No warehouses found', false)
+        ul.innerHTML = '<p class="message-text">No warehouses found</p>'
+        return
+      }
+
       ul.innerHTML = data.map(w => `
         <li class="card">
           <div class="card-content">
@@ -137,8 +153,8 @@
             <div><strong>Utilized:</strong> ${w.utilized ?? 'N/A'}</div>
           </div>
           <div class="card-actions">
-            <button class="btn blue" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
-            <button class="btn red" onclick="deleteWarehouse('${w._id}')">Delete</button>
+            <button class="btn btn-update" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
+            <button class="btn btn-delete" onclick="deleteWarehouse('${w._id}')">Delete</button>
           </div>
         </li>
       `).join('')
@@ -152,8 +168,18 @@
       latestSearch = { type, value }
 
       const res = await fetch(`http://localhost:5000/api/warehouses/${type}/${value}`)
+
+      if (!res.ok) {
+        // Handle the case where no warehouses are found (e.g., 404)
+        $('searchResults').innerHTML = '<p class="message-text">No warehouses found</p>';
+        if ($('searchStatus')) {
+          $('searchStatus').classList.remove('error'); // Adjust styling as needed
+        }
+        return;
+      }
+
       const data = await res.json()
-      renderWarehouseList(Array.isArray(data) ? data : [data], 'searchResults')
+      renderList(Array.isArray(data) ? data : [data], 'searchResults')
     })
 
     const refreshSearch = () => {
