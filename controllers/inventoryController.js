@@ -21,39 +21,41 @@ exports.getAllInventory = async (req, res) => {
 
 // Search inventory by type and value
 exports.searchInventory = async (req, res) => {
-  const { type, value } = req.params;
-  const searchVal = value?.trim();
-
-  if (!searchVal) {
-    return res.status(400).json({ error: 'Search value is required' });
-  }
-
   try {
-    const inventory = await Inventory.find()
+    const { type, value } = req.query;
+    if (!type || !value) {
+      return res.status(400).json({ message: 'type and value are required' });
+    }
+
+    const results = await Inventory.find()
       .populate('product_id')
       .populate('warehouse_id')
       .populate('category_id')
       .populate('supplier_id');
 
-    const filterMap = {
-      product: i => i.product_id?.name?.toLowerCase().includes(searchVal.toLowerCase()),
-      category: i => i.category_id?.name?.toLowerCase().includes(searchVal.toLowerCase()),
-      supplier: i => i.supplier_id?.name?.toLowerCase().includes(searchVal.toLowerCase()),
-      warehouse: i => i.warehouse_id?.location?.toLowerCase().includes(searchVal.toLowerCase())
-    };
+    const filtered = results.filter(inv => {
+      switch (type) {
+        case 'product_name':
+          return inv.product_id?.name?.toLowerCase().includes(value.toLowerCase());
+        case 'product_category':
+          return inv.category_id?.name?.toLowerCase().includes(value.toLowerCase());
+        case 'product_supplier':
+          return inv.supplier_id?.name?.toLowerCase().includes(value.toLowerCase());
+        case 'warehouse_name':
+          return inv.warehouse_id?.name?.toLowerCase().includes(value.toLowerCase());
+        default:
+          return false;
+      }
+    });
 
-    const filterFn = filterMap[type];
-    if (!filterFn) {
-      return res.status(400).json({ error: 'Invalid search type' });
-    }
-
-    const results = inventory.filter(filterFn);
-    res.json(results);
+    res.json(filtered);
   } catch (err) {
-    console.error('[searchInventory] Error:', err);
-    res.status(500).json({ error: 'Search failed', details: err.message });
+    console.error('Search error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
+
+
 
 // Create a new inventory entry
 exports.createInventory = async (req, res) => {
@@ -105,57 +107,26 @@ exports.createInventory = async (req, res) => {
 
 // Update inventory entry
 exports.updateInventory = async (req, res) => {
-  const { id } = req.params;
-  const { product_id, warehouse_id, stock } = req.body;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: 'Invalid inventory ID' });
-  }
-
-  const updateData = { updatedAt: new Date() };
-
   try {
-    if (product_id) {
-      if (!mongoose.Types.ObjectId.isValid(product_id)) {
-        return res.status(400).json({ error: 'Invalid product_id' });
-      }
+    const updated = await Inventory.findByIdAndUpdate(
+      req.params.id,
+      {
+        product_id: req.body.product_id,
+        category_id: req.body.category_id,
+        supplier_id: req.body.supplier_id,
+        warehouse_id: req.body.warehouse_id,
+        stock: req.body.stock,
+        updatedAt: new Date()
+      },
+      { new: true }
+    )
 
-      const product = await Product.findById(product_id).populate(['category_id', 'supplier_id']);
-      if (!product) return res.status(404).json({ error: 'Product not found' });
+    if (!updated) return res.status(404).send({ message: 'Inventory not found' })
 
-      updateData.product_id = product._id;
-      updateData.category_id = product.category_id?._id || null;
-      updateData.supplier_id = product.supplier_id?._id || null;
-    }
-
-    if (warehouse_id) {
-      if (!mongoose.Types.ObjectId.isValid(warehouse_id)) {
-        return res.status(400).json({ error: 'Invalid warehouse_id' });
-      }
-      updateData.warehouse_id = warehouse_id;
-    }
-
-    if (stock !== undefined) {
-      if (typeof stock !== 'number') {
-        return res.status(400).json({ error: 'Stock must be a number' });
-      }
-      updateData.stock = stock;
-    }
-
-    const updatedInventory = await Inventory.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedInventory) {
-      return res.status(404).json({ error: 'Inventory not found' });
-    }
-
-    res.json({ message: 'Inventory updated successfully', inventory: updatedInventory });
+    res.send(updated)
   } catch (err) {
-    console.error('[updateInventory] Error:', err);
-    res.status(500).json({ error: 'Failed to update inventory', details: err.message });
+    console.error(err)
+    res.status(500).send({ message: 'Server error' })
   }
 };
 
@@ -222,3 +193,4 @@ exports.getProductDetails = async (req, res) => {
     res.status(500).json({ message: 'Error retrieving product', details: err.message });
   }
 };
+

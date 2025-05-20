@@ -124,6 +124,7 @@ form {
   display: block;
   margin-bottom: 0.25rem;
   font-weight: 500;
+  font-size: 15px;
 }
 
 input, select {

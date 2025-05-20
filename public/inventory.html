@@ -6,11 +6,6 @@
   <title>Inventory Manager</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/inventory.css" />
-  <style>
-    .loading { opacity: 0.5; pointer-events: none; }
-    .error-message { color: #dc3545; margin: 5px 0; }
-    .success-message { color: #28a745; margin: 5px 0; }
-  </style>
 </head>
 <body>
   <header>
@@ -19,84 +14,116 @@
   </header>
 
   <main>
+    <!-- SEARCH FORM -->
     <section class="form-section">
       <h2>Search Inventory</h2>
       <form id="searchForm">
         <select id="searchType" required>
-          <option value="">--Select Search Type--</option>
+          <option value="" disabled selected hidden>Search Type</option>
           <option value="product_name">Product Name</option>
           <option value="product_category">Category</option>
           <option value="product_supplier">Supplier</option>
           <option value="warehouse_name">Warehouse Name</option>
         </select>
-        <input type="text" id="searchField" placeholder="Enter search value" style="display: none;" required />
-        <button type="submit" style="display: none;">Search</button>
+        <input type="text" id="searchValue" placeholder="Enter value..." required />
+        <button type="submit">Search</button>
       </form>
       <div id="searchStatus" class="status-message"></div>
       <ul id="searchResults"></ul>
     </section>
 
+    <!-- ADD FORM -->
     <section class="form-section">
       <h2>Add Inventory</h2>
       <form id="addForm">
         <div class="form-group">
           <label for="productSelect">Product</label>
-          <select id="productSelect" required>
-            <option value="">Select a product</option>
-          </select>
+          <select id="productSelect" required><option value="">Select a product</option></select>
         </div>
-
-        <div class="info-fields">
-          <div class="form-group">
-            <label for="categoryField">Category</label>
-            <input type="text" id="categoryField" readonly />
-          </div>
-          <div class="form-group">
-            <label for="supplierField">Supplier</label>
-            <input type="text" id="supplierField" readonly />
-          </div>
+        <div class="form-group">
+          <label for="categorySelect">Category</label>
+          <select id="categorySelect" required><option value="">Select a category</option></select>
         </div>
-
+        <div class="form-group">
+          <label for="supplierSelect">Supplier</label>
+          <select id="supplierSelect" required><option value="">Select a supplier</option></select>
+        </div>
         <div class="form-group">
           <label for="warehouseSelect">Warehouse</label>
-          <select id="warehouseSelect" required>
-            <option value="">Select a warehouse</option>
-          </select>
+          <select id="warehouseSelect" required><option value="">Select a warehouse</option></select>
         </div>
-
         <div class="form-group">
           <label for="stock">Stock Quantity</label>
-          <input type="number" id="stock" min="0" required />
+          <input type="number" id="stock" min="0" value="0" required />
         </div>
-
-        <button type="submit" id="submitBtn">Add Inventory</button>
+        <button type="submit">Add Inventory</button>
         <div id="formStatus" class="status-message"></div>
       </form>
     </section>
 
+    <!-- LOW STOCK -->
     <section class="list-section">
       <h2>Low Stock Items</h2>
       <div class="filter-group">
-        <select id="lowStockWarehouse">
-          <option value="">Select warehouse</option>
-        </select>
-        <button id="checkLowStock">Check Low Stock</button>
+        <select id="lowStockWarehouse"><option value="">Select warehouse</option></select>
+        <button type="button" class="button-primary" onclick="fetchLowStock()">Check Low Stock</button>
       </div>
       <div id="lowStockStatus" class="status-message"></div>
       <ul id="lowStockList"></ul>
     </section>
 
+    <!-- ALL INVENTORY -->
     <section class="list-section">
       <h2>All Inventory</h2>
-      <button id="viewAll">Load All Inventory</button>
-      <div id="allInventoryStatus" class="status-message"></div>
-      <ul id="allInventoryList"></ul>
+      <button type="button" class="button-primary" onclick="fetchInventory()">Refresh List</button>
+      <ul id="inventoryList"></ul>
     </section>
   </main>
 
+    <!-- MODAL -->
+    <div class="modal" id="updateModal">
+      <div class="modal-content">
+        <button class="close-btn" onclick="hideModal()">×</button>
+        <h2>Update Inventory</h2>
+        <form id="updateForm">
+          <input type="hidden" id="updateId" />
+
+          <div class="form-group">
+            <label for="updateProduct">Product:</label>
+            <select id="updateProduct" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="updateCategory">Category:</label>
+            <select id="updateCategory" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="updateSupplier">Supplier:</label>
+            <select id="updateSupplier" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="updateWarehouse">Warehouse:</label>
+            <select id="updateWarehouse" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="updateStock">Stock Quantity:</label>
+            <input type="number" id="updateStock" required />
+          </div>
+
+          <button type="submit">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+
   <script>
     const $ = id => document.getElementById(id)
-    let isLoading = false
+    const updateModal = $('updateModal')
+    const searchForm = $('searchForm')
+    let latestSearch = null
 
     const api = async (url, method = 'GET', body) => {
       try {
@@ -116,211 +143,266 @@
       }
     }
 
-    const showMessage = (element, message, isError = true) => {
-      element.textContent = message
-      element.className = `status-message ${isError ? 'error-message' : 'success-message'}`
-      setTimeout(() => element.textContent = '', 3000)
+    const showMessage = (el, message, isError = false) => {
+      el.textContent = message
+      el.className = 'status-message' + (isError ? ' error' : '')
     }
 
-    const setLoading = (state) => {
-      isLoading = state
-      document.body.classList.toggle('loading', state)
+    const renderOptions = (selectId, items, labelField = 'name', valueField = '_id') => {
+      const select = $(selectId)
+      items.forEach(item => {
+        const option = document.createElement('option')
+        option.value = item[valueField]
+        option.textContent = item[labelField]
+        select.appendChild(option)
+      })
+    }
+
+    const loadDropdowns = async () => {
+      try {
+        const [warehouses, categories, suppliers, products] = await Promise.all([
+          api('warehouses'),
+          api('categories'),
+          api('suppliers'),
+          api('products')
+        ])
+
+        renderOptions('warehouseSelect', warehouses)
+        renderOptions('lowStockWarehouse', warehouses)
+        renderOptions('categorySelect', categories)
+        renderOptions('supplierSelect', suppliers)
+        renderOptions('productSelect', products)
+
+      } catch (error) {
+        console.error('Dropdown load error:', error)
+      }
+    }
+
+    async function populateDropdowns() {
+      const [products, categories, suppliers, warehouses] = await Promise.all([
+        fetch('http://localhost:5000/api/products').then(res => res.json()),
+        fetch('http://localhost:5000/api/categories').then(res => res.json()),
+        fetch('http://localhost:5000/api/suppliers').then(res => res.json()),
+        fetch('http://localhost:5000/api/warehouses').then(res => res.json())
+      ])
+
+      populateSelect('updateProduct', products, 'name')
+      populateSelect('updateCategory', categories, 'name')
+      populateSelect('updateSupplier', suppliers, 'name')
+      populateSelect('updateWarehouse', warehouses, 'location') // or .name, depending on your schema
+    }
+
+    function populateSelect(selectId, data, labelKey) {
+      const select = document.getElementById(selectId)
+      select.innerHTML = data.map(item => `<option value="${item._id}">${item[labelKey]}</option>`).join('')
+    }
+
+    
+    const fetchInventory = async () => {
+      const res = await fetch('http://localhost:5000/api/inventory')
+      const data = await res.json()
+      renderList(data, 'inventoryList')
+    }
+
+    const fetchLowStock = async () => {
+      const id = $('lowStockWarehouse').value
+      if (!id) return showMessage($('lowStockStatus'), 'Select a warehouse first', true)
+      try {
+        const data = await api(`inventory/low-stock?warehouseId=${id}`)
+        renderList(data, 'lowStockList', $('lowStockStatus'))
+      } catch (error) {
+        showMessage($('lowStockStatus'), `Failed to load: ${error.message}`, true)
+      }
+    }
+
+    const openUpdateModal = async (i) => {
+      await populateDropdowns() // Load dropdowns before setting selected values
+
+      $('updateId').value = i._id
+      $('updateProduct').value = i.product_id?._id || i.product_id
+      $('updateCategory').value = i.category_id?._id || i.category_id
+      $('updateSupplier').value = i.supplier_id?._id || i.supplier_id
+      $('updateWarehouse').value = i.warehouse_id?._id || i.warehouse_id
+      $('updateStock').value = i.stock
+
+      updateModal.style.display = 'flex'
+    }
+
+
+    const hideModal = () => {
+      updateModal.style.display = 'none'
+    }
+
+    $('addForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const productId = $('productSelect').value;
+      const categoryId = $('categorySelect').value;
+      const supplierId = $('supplierSelect').value;
+      const warehouseId = $('warehouseSelect').value;
+      const stockQty = Number($('stock').value);
+
+      if (!productId || !categoryId || !supplierId || !warehouseId || isNaN(stockQty)) {
+        return showMessage($('formStatus'), 'All fields are required', true);
+      }
+
+      try {
+        // Always create a new inventory record
+        await api('inventory', 'POST', {
+          product_id: productId,
+          category_id: categoryId,
+          supplier_id: supplierId,
+          warehouse_id: warehouseId,
+          stock: stockQty
+        });
+
+        showMessage($('formStatus'), 'Inventory successfully saved!', false);
+        $('addForm').reset();
+        fetchInventory();
+        refreshSearch();
+      } catch (err) {
+        console.error('Add inventory error:', err);
+        showMessage($('formStatus'), `Error: ${err.message}`, true);
+      }
+    });
+
+
+
+    document.getElementById('updateForm').addEventListener('submit', async e => {
+      e.preventDefault()
+
+      const id = $('updateId').value
+      const updatedData = {
+        product_id: $('updateProduct').value,
+        category_id: $('updateCategory').value,
+        supplier_id: $('updateSupplier').value,
+        warehouse_id: $('updateWarehouse').value,
+        stock: parseInt($('updateStock').value, 10)
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/inventory/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedData)
+        })
+
+        if (!res.ok) throw new Error('Update failed')
+
+        hideModal()
+        showMessage($('searchStatus'), 'Inventory updated successfully', false)
+
+        // ✅ Refresh inventory display
+        if (latestSearch?.type && latestSearch?.value) {
+          // Re-run the previous search
+          document.getElementById('searchForm').dispatchEvent(new Event('submit'))
+        } else {
+          // Or fetch full inventory again
+          fetchInventory()
+        }
+
+        // ✅ Optionally refresh warehouse utilization too
+        updateWarehouseUtilization()
+
+      } catch (err) {
+        console.error(err)
+        showMessage($('searchStatus'), 'Error updating inventory', true)
+      }
+    })
+
+
+
+    const deleteInventory = async id => {
+      if (!confirm('Delete this inventory?')) return
+      await fetch(`http://localhost:5000/api/inventory/${id}`, {
+        method: 'DELETE'
+      })
+      alert('Deleted.')
+      fetchInventory()
+      refreshSearch()
     }
 
     const renderList = (data, targetId, statusElement) => {
       const listElement = $(targetId)
       if (!data.length) {
-        statusElement && showMessage(statusElement, 'No items found', false)
-        listElement.innerHTML = '<li>No items found</li>'
+        if (statusElement) 
+        listElement.innerHTML = '<p class="message-text">No inventory found</p>'
         return
       }
-      listElement.innerHTML = data.map(i => `
-        <li>
-          <strong>${i.product_id?.name || 'Unknown'}</strong><br/>
-          Category: ${i.category_id?.name || ''}<br/>
-          Supplier: ${i.supplier_id?.name || ''}<br/>
-          Stock: ${i.stock}<br/>
-          Warehouse: ${i.warehouse_id?.location || ''}<br/>
-          Last Updated: ${new Date(i.updatedAt || i.createdAt).toLocaleString()}<br/>
-          <div class="item-actions">
-            <button onclick="updateInventoryPrompt('${i._id}', '${targetId}')">Update</button>
-            <button class="delete-btn" onclick="deleteInventory('${i._id}', '${targetId}')">Delete</button>
-          </div>
-        </li>
-      `).join('')
+
+      const html = data.map(i => {
+        const productName = i.product_id?.name || 'Unknown'
+        const category = i.category_id?.name || ''
+        const supplier = i.supplier_id?.name || ''
+        const warehouse = i.warehouse_id?.name || ''
+        const lastUpdated = new Date(i.updatedAt || i.createdAt).toLocaleString()
+        return `
+          <li class="card">
+            <div class="card-content">
+              <div><strong>Product:</strong> ${productName}</div>
+              <div><strong>Category:</strong> ${category}</div>
+              <div><strong>Supplier:</strong> ${supplier}</div>
+              <div><strong>Warehouse:</strong> ${warehouse}</div>
+              <div><strong>Stock:</strong> ${i.stock}</div>
+              <div><strong>Last Updated:</strong> ${lastUpdated}</div>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-update" onclick='openUpdateModal(${JSON.stringify(i)})'>Update</button>
+              <button class="btn btn-delete" onclick="deleteInventory('${i._id}')">Delete</button>
+            </div>
+          </li>
+        `
+      }).join('')
+      listElement.innerHTML = html
     }
 
-    window.deleteInventory = async (id, listId) => {
-      if (!confirm('Delete this inventory item?')) return
-      try {
-        setLoading(true)
-        await api(`inventory/${id}`, 'DELETE')
-        $(listId).querySelector(`li button[onclick*="${id}"]`).closest('li').remove()
-      } catch (error) {
-        showMessage($('allInventoryStatus'), `Delete failed: ${error.message}`)
-      } finally {
-        setLoading(false)
+searchForm.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const type = $('searchType').value;
+  const value = $('searchValue').value.trim();
+  if (!type || !value) return;
+
+  latestSearch = { type, value };
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/inventory/search?type=${type}&value=${encodeURIComponent(value)}`, {
+      cache: 'no-store'
+    });
+
+    console.log('Search response status:', res.status);
+
+    if (res.status === 200) {
+      const data = await res.json();
+      console.log('Search response data:', data);
+
+      const listElement = $('searchResults');
+
+      if (data.length === 0) {
+        listElement.innerHTML = '<p class="message-text">No inventory found</p>';
+      } else {
+        fetchInventory(data);
+        renderList(Array.isArray(data) ? data : [data], 'searchResults');
       }
+    } else {
+      showMessage($('searchStatus'), `Unexpected response (status ${res.status})`, true);
+    }
+  } catch (error) {
+    console.error('Search error:', error);
+    showMessage($('searchStatus'), 'An error occurred during search.', true);
+  }
+});
+
+    const refreshSearch = () => {
+      if (!latestSearch) return
+      const event = new Event('submit')
+      searchForm.dispatchEvent(event)
     }
 
-    window.updateInventoryPrompt = async (id, listId) => {
-      const stock = prompt('Enter new stock quantity:')
-      if (stock === null || stock.trim() === '') return
-      try {
-        setLoading(true)
-        await api(`inventory/${id}`, 'PUT', { stock: Number(stock) })
-        const data = await api('inventory')
-        renderList(data, listId, $('allInventoryStatus'))
-      } catch (error) {
-        showMessage($('allInventoryStatus'), `Update failed: ${error.message}`)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    $('searchType').onchange = e => {
-      const field = $('searchField')
-      const button = $('searchForm').querySelector('button')
-      const val = e.target.value
-      field.style.display = button.style.display = val ? 'inline' : 'none'
-      if (val) {
-        const text = e.target.options[e.target.selectedIndex].text
-        field.placeholder = `Enter ${text}`
-      }
-    }
-
-    $('searchForm').onsubmit = async e => {
-      e.preventDefault()
-      const type = $('searchType').value
-      const value = $('searchField').value.trim()
-      if (!type || !value) return
-      const endpointMap = {
-        product_name: 'product', // Ensure this maps to the correct API endpoint
-        product_category: 'category',
-        product_supplier: 'supplier',
-        warehouse_name: 'warehouse' // Ensure this maps to the correct API endpoint
-      }
-      const endpoint = endpointMap[type]
-      if (!endpoint) return showMessage($('searchStatus'), 'Invalid search type', true)
-      try {
-        setLoading(true)
-        const data = await api(`inventory/${endpoint}/${value}`) // Ensure this API call is correct
-        renderList(data, 'searchResults', $('searchStatus'))
-      } catch (error) {
-        showMessage($('searchStatus'), `Search failed: ${error.message}`)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    $('addForm').addEventListener('submit', async e => {
-      e.preventDefault()
-      const productId   = $('productSelect').value
-      const warehouseId = $('warehouseSelect').value
-      const stockQty    = Number($('stock').value)
-
-      if (!productId || !warehouseId || isNaN(stockQty)) {
-        return showMessage($('formStatus'), 'All fields are required', true)
-      }
-
-      const formData = {
-        product_id: productId.toString(),
-        warehouse_id: warehouseId.toString(),
-        stock: stockQty
-      }
-      console.log('Submitting inventory:', formData)
-
-      try {
-        setLoading(true)
-        await api('inventory', 'POST', formData)
-        showMessage($('formStatus'), 'Inventory added successfully!', false)
-        $('addForm').reset()
-        $('categoryField').value = ''
-        $('supplierField').value = ''
-        const allData = await api('inventory')
-        renderList(allData, 'allInventoryList', $('allInventoryStatus'))
-      } catch (err) {
-        console.error('Add inventory error:', err)
-        showMessage($('formStatus'), `Add failed: ${err.message}`, true)
-      } finally {
-        setLoading(false)
-      }
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDropdowns()
+      fetchInventory()
     })
-
-    $('checkLowStock').onclick = async () => {
-      const id = $('lowStockWarehouse').value
-      if (!id) return showMessage($('lowStockStatus'), 'Select a warehouse first', true)
-      try {
-        setLoading(true)
-        const data = await api(`inventory/low-stock?warehouseId=${id}`)
-        renderList(data, 'lowStockList', $('lowStockStatus'))
-      } catch (error) {
-        showMessage($('lowStockStatus'), `Failed to load: ${error.message}`, true)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    $('viewAll').onclick = async () => {
-      try {
-        setLoading(true)
-        const data = await api('inventory')
-        renderList(data, 'allInventoryList', $('allInventoryStatus'))
-      } catch (error) {
-        showMessage($('allInventoryStatus'), `Failed to load: ${error.message}`, true)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    $('productSelect').onchange = async () => {
-      const productId = $('productSelect').value
-      if (!productId) {
-        $('categoryField').value = ''
-        $('supplierField').value = ''
-        return
-      }
-      try {
-        const product = await api(`products/${productId}`)
-        $('categoryField').value = product.category_id?.name || ''
-        $('supplierField').value = product.supplier_id?.name || ''
-      } catch (error) {
-        console.error('Failed to fetch product details:', error)
-      }
-    }
-
-    const populateSelect = async (url, selectId, valueKey, textKey) => {
-      try {
-        const data = await api(url)
-        const select = $(selectId)
-        select.innerHTML = `<option value="">${selectId === 'productSelect' ? 'Select a product' : 'Select a warehouse'}</option>`
-        data.forEach(d => {
-          const opt = document.createElement('option')
-          opt.value = d[valueKey]
-          opt.textContent = d[textKey]
-          select.appendChild(opt)
-        })
-      } catch (error) {
-        console.error(`Failed to populate ${selectId}:`, error)
-      }
-    }
-
-    ;(async () => {
-      try {
-        setLoading(true)
-        await Promise.all([
-          populateSelect('products', 'productSelect', '_id', 'name'),
-          populateSelect('warehouses', 'warehouseSelect', '_id', 'location'),
-          populateSelect('warehouses', 'lowStockWarehouse', '_id', 'location')
-        ])
-        const data = await api('inventory')
-        renderList(data, 'allInventoryList', $('allInventoryStatus'))
-      } catch (error) {
-        console.error('Initialization error:', error)
-      } finally {
-        setLoading(false)
-      }
-    })()
   </script>
+
 </body>
 </html>

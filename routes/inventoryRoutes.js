@@ -20,12 +20,12 @@ router.put('/:id', inventoryController.updateInventory);
 router.delete('/:id', inventoryController.deleteInventory);
 
 // Get low stock items
-router.get('/low-stock', inventoryController.getLowStockItems);
+router.get('/low-stock/', inventoryController.getLowStockItems);
 
 // Get detailed product info by ID
 router.get('/products/:id', inventoryController.getProductDetails);
 
 // Search by type and value
-router.get('/:type/:value', inventoryController.searchInventory);
+router.get('/search', inventoryController.searchInventory);
 
 module.exports = router;

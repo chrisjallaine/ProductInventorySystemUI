@@ -5,9 +5,9 @@ const inventorySchema = new mongoose.Schema({
   warehouse_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Warehouse', required: true },
   stock: { type: Number, required: true },
   category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
-  supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date }
-});
+  supplier_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' }
+}, {
+  timestamps: true // adds createdAt and updatedAt
+})
 
-module.exports = mongoose.model('Inventory', inventorySchema);
+module.exports = mongoose.model('Inventory', inventorySchema)
