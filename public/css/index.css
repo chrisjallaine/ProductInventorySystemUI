@@ -155,7 +155,7 @@ header {
 
 /* Update stat cards to black background */
 .stat-card {
-  background-color: #ebebeb; /* Black background */
+  background-color: #e9ecef; /* Black background */
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 14px;

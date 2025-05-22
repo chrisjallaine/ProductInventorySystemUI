@@ -13,111 +13,120 @@
     <h1>Inventory Management</h1>
   </header>
 
-  <main>
-    <!-- SEARCH FORM -->
-    <section class="form-section">
-      <h2>Search Inventory</h2>
-      <form id="searchForm">
-        <select id="searchType" required>
-          <option value="" disabled selected hidden>Search Type</option>
-          <option value="product_name">Product Name</option>
-          <option value="product_category">Category</option>
-          <option value="product_supplier">Supplier</option>
-          <option value="warehouse_name">Warehouse Name</option>
-        </select>
-        <input type="text" id="searchValue" placeholder="Enter value..." required />
-        <button type="submit">Search</button>
-      </form>
-      <div id="searchStatus" class="status-message"></div>
-      <ul id="searchResults"></ul>
-    </section>
+  <main class="main-container">
+    <!-- Left Panel -->
+<div class="left-panel">
+  <!-- LOW STOCK - Added tight-section class -->
+  <section class="list-section tight-section">
+    <h2>Low Stock Items</h2>
+    <div class="filter-group">
+      <select id="lowStockWarehouse"><option value="">Select warehouse</option></select>
+      <button type="button" class="button-primary" onclick="fetchLowStock()">Check Low Stock</button>
+    </div>
+    <!-- Added no-gap class to these elements -->
+    <div id="lowStockStatus" class="status-message no-gap"></div>
+    <ul id="lowStockList" class="no-gap"></ul>
+  </section>
+  
+  <!-- SEARCH FORM - Added tight-section class -->
+  <section class="form-section tight-section no-gap">
+    <h2>Search Inventory</h2>
+    <form id="searchForm">
+      <select id="searchType" required>
+        <option value="" disabled selected hidden>Search Type</option>
+        <option value="product_name">Product Name</option>
+        <option value="product_category">Category</option>
+        <option value="product_supplier">Supplier</option>
+        <option value="warehouse_name">Warehouse Name</option>
+      </select>
+      <input type="text" id="searchValue" placeholder="Enter value..." required />
+      <button type="submit">Search</button>
+    </form>
+    <div id="searchStatus" class="status-message"></div>
+    <ul id="searchResults"></ul>
+  </section>
+</div>
 
-    <!-- ADD FORM -->
-    <section class="form-section">
-      <h2>Add Inventory</h2>
-      <form id="addForm">
-        <div class="form-group">
-          <label for="productSelect">Product</label>
-          <select id="productSelect" required><option value="">Select a product</option></select>
-        </div>
-        <div class="form-group">
-          <label for="categorySelect">Category</label>
-          <select id="categorySelect" required><option value="">Select a category</option></select>
-        </div>
-        <div class="form-group">
-          <label for="supplierSelect">Supplier</label>
-          <select id="supplierSelect" required><option value="">Select a supplier</option></select>
-        </div>
-        <div class="form-group">
-          <label for="warehouseSelect">Warehouse</label>
-          <select id="warehouseSelect" required><option value="">Select a warehouse</option></select>
-        </div>
-        <div class="form-group">
-          <label for="stock">Stock Quantity</label>
-          <input type="number" id="stock" min="0" value="0" required />
-        </div>
-        <button type="submit">Add Inventory</button>
-        <div id="formStatus" class="status-message"></div>
-      </form>
-    </section>
-
-    <!-- LOW STOCK -->
-    <section class="list-section">
-      <h2>Low Stock Items</h2>
-      <div class="filter-group">
-        <select id="lowStockWarehouse"><option value="">Select warehouse</option></select>
-        <button type="button" class="button-primary" onclick="fetchLowStock()">Check Low Stock</button>
-      </div>
-      <div id="lowStockStatus" class="status-message"></div>
-      <ul id="lowStockList"></ul>
-    </section>
-
-    <!-- ALL INVENTORY -->
-    <section class="list-section">
-      <h2>All Inventory</h2>
-      <button type="button" class="button-primary" onclick="fetchInventory()">Refresh List</button>
-      <ul id="inventoryList"></ul>
-    </section>
-  </main>
-
-    <!-- MODAL -->
-    <div class="modal" id="updateModal">
-      <div class="modal-content">
-        <button class="close-btn" onclick="hideModal()">×</button>
-        <h2>Update Inventory</h2>
-        <form id="updateForm">
-          <input type="hidden" id="updateId" />
-
+    <!-- Center Panel -->
+    <div class="center-panel">
+      <!-- ADD FORM -->
+      <section class="form-section">
+        <h2>Add Inventory</h2>
+        <form id="addForm">
           <div class="form-group">
-            <label for="updateProduct">Product:</label>
-            <select id="updateProduct" required></select>
+            <label for="productSelect">Product</label>
+            <select id="productSelect" required><option value="">Select a product</option></select>
           </div>
-
           <div class="form-group">
-            <label for="updateCategory">Category:</label>
-            <select id="updateCategory" required></select>
+            <label for="categorySelect">Category</label>
+            <select id="categorySelect" required><option value="">Select a category</option></select>
           </div>
-
           <div class="form-group">
-            <label for="updateSupplier">Supplier:</label>
-            <select id="updateSupplier" required></select>
+            <label for="supplierSelect">Supplier</label>
+            <select id="supplierSelect" required><option value="">Select a supplier</option></select>
           </div>
-
           <div class="form-group">
-            <label for="updateWarehouse">Warehouse:</label>
-            <select id="updateWarehouse" required></select>
+            <label for="warehouseSelect">Warehouse</label>
+            <select id="warehouseSelect" required><option value="">Select a warehouse</option></select>
           </div>
-
           <div class="form-group">
-            <label for="updateStock">Stock Quantity:</label>
-            <input type="number" id="updateStock" required />
+            <label for="stock">Stock Quantity</label>
+            <input type="number" id="stock" min="0" value="0" required />
           </div>
-
-          <button type="submit">Save Changes</button>
+          <button type="submit">Add Inventory</button>
+          <div id="formStatus" class="status-message"></div>
         </form>
-      </div>
+      </section>
     </div>
 
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- ALL INVENTORY -->
+      <section class="list-section">
+        <h2>All Inventory</h2>
+        <button type="button" class="button-primary" onclick="fetchInventory()">Refresh List</button>
+        <ul id="inventoryList"></ul>
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal" id="updateModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="hideModal()">×</button>
+      <h2>Update Inventory</h2>
+      <form id="updateForm">
+        <input type="hidden" id="updateId" />
+
+        <div class="form-group">
+          <label for="updateProduct">Product:</label>
+          <select id="updateProduct" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="updateCategory">Category:</label>
+          <select id="updateCategory" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="updateSupplier">Supplier:</label>
+          <select id="updateSupplier" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="updateWarehouse">Warehouse:</label>
+          <select id="updateWarehouse" required></select>
+        </div>
+
+        <div class="form-group">
+          <label for="updateStock">Stock Quantity:</label>
+          <input type="number" id="updateStock" required />
+        </div>
+
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
 
   <script>
     const $ = id => document.getElementById(id)
@@ -228,7 +237,6 @@
       updateModal.style.display = 'flex'
     }
 
-
     const hideModal = () => {
       updateModal.style.display = 'none'
     }
@@ -264,8 +272,6 @@
         showMessage($('formStatus'), `Error: ${err.message}`, true);
       }
     });
-
-
 
     document.getElementById('updateForm').addEventListener('submit', async e => {
       e.preventDefault()
@@ -308,8 +314,6 @@
         showMessage($('searchStatus'), 'Error updating inventory', true)
       }
     })
-
-
 
     const deleteInventory = async id => {
       if (!confirm('Delete this inventory?')) return
@@ -355,42 +359,42 @@
       listElement.innerHTML = html
     }
 
-searchForm.addEventListener('submit', async e => {
-  e.preventDefault();
+    searchForm.addEventListener('submit', async e => {
+      e.preventDefault();
 
-  const type = $('searchType').value;
-  const value = $('searchValue').value.trim();
-  if (!type || !value) return;
+      const type = $('searchType').value;
+      const value = $('searchValue').value.trim();
+      if (!type || !value) return;
 
-  latestSearch = { type, value };
+      latestSearch = { type, value };
 
-  try {
-    const res = await fetch(`http://localhost:5000/api/inventory/search?type=${type}&value=${encodeURIComponent(value)}`, {
-      cache: 'no-store'
-    });
+      try {
+        const res = await fetch(`http://localhost:5000/api/inventory/search?type=${type}&value=${encodeURIComponent(value)}`, {
+          cache: 'no-store'
+        });
 
-    console.log('Search response status:', res.status);
+        console.log('Search response status:', res.status);
 
-    if (res.status === 200) {
-      const data = await res.json();
-      console.log('Search response data:', data);
+        if (res.status === 200) {
+          const data = await res.json();
+          console.log('Search response data:', data);
 
-      const listElement = $('searchResults');
+          const listElement = $('searchResults');
 
-      if (data.length === 0) {
-        listElement.innerHTML = '<p class="message-text">No inventory found</p>';
-      } else {
-        fetchInventory(data);
-        renderList(Array.isArray(data) ? data : [data], 'searchResults');
+          if (data.length === 0) {
+            listElement.innerHTML = '<p class="message-text">No inventory found</p>';
+          } else {
+            fetchInventory(data);
+            renderList(Array.isArray(data) ? data : [data], 'searchResults');
+          }
+        } else {
+          showMessage($('searchStatus'), `Unexpected response (status ${res.status})`, true);
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        showMessage($('searchStatus'), 'An error occurred during search.', true);
       }
-    } else {
-      showMessage($('searchStatus'), `Unexpected response (status ${res.status})`, true);
-    }
-  } catch (error) {
-    console.error('Search error:', error);
-    showMessage($('searchStatus'), 'An error occurred during search.', true);
-  }
-});
+    });
 
     const refreshSearch = () => {
       if (!latestSearch) return

@@ -13,34 +13,40 @@
     <h1>Supplier Management</h1>
   </header>
 
-  <main>
-    <section class="form-section">
-      <h2>Search Suppliers</h2>
-      <form id="searchForm">
-        <input type="text" id="searchValue" placeholder="Enter supplier name..." required />
-        <button type="submit">Search</button>
-      </form>
-      <div id="searchStatus" class="status-message"></div>
-      <ul id="searchResults"></ul>
-    </section>
+  <main class="main-container">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <section class="form-section">
+        <h2>Search Suppliers</h2>
+        <form id="searchForm">
+          <input type="text" id="searchValue" placeholder="Enter supplier name..." required />
+          <button type="submit">Search</button>
+        </form>
+        <div id="searchStatus" class="status-message"></div>
+        <ul id="searchResults"></ul>
+      </section>
 
-    <section class="form-section">
-      <h2>Add Supplier</h2>
-      <form id="addForm">
-        <input type="text" name="name" placeholder="Supplier Name" required />
-        <input type="text" name="contact_info" placeholder="Contact Info" />
-        <input type="email" name="email" placeholder="Email Address" />
-        <input type="text" name="address" placeholder="Physical Address" />
-        <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
-        <button type="submit">Add Supplier</button>
-      </form>
-    </section>
+      <section class="form-section">
+        <h2>Add Supplier</h2>
+        <form id="addForm">
+          <input type="text" name="name" placeholder="Supplier Name" required />
+          <input type="text" name="contact_info" placeholder="Contact Info" />
+          <input type="email" name="email" placeholder="Email Address" />
+          <input type="text" name="address" placeholder="Physical Address" />
+          <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
+          <button type="submit">Add Supplier</button>
+        </form>
+      </section>
+    </div>
 
-    <section class="list-section">
-      <h2>All Suppliers</h2>
-      <button type="button" class="button-primary" onclick="fetchSuppliers()">Refresh List</button>
-      <ul id="supplierList"></ul>
-    </section>
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <section class="list-section">
+        <h2>All Suppliers</h2>
+        <button type="button" class="button-primary" onclick="fetchSuppliers()">Refresh List</button>
+        <ul id="supplierList"></ul>
+      </section>
+    </div>
   </main>
 
   <div class="modal" id="updateModal">

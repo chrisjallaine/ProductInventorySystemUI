@@ -13,37 +13,43 @@
     <h1>Warehouse Management</h1>
   </header>
 
-  <main>
-    <section class="form-section">
-      <h2>Search Warehouses</h2>
-      <form id="searchForm">
-        <select id="searchType" required>
-          <option value="" disabled selected hidden>Search Type</option>
-          <option value="name">By Warehouse Name</option>
-          <option value="location">By Location</option>
-        </select>
-        <input type="text" id="searchValue" placeholder="Enter value..." required />
-        <button type="submit">Search</button>
-      </form>
-      <div id="searchStatus" class="status-message"></div>
-      <ul id="searchResults"></ul>
-    </section>
+  <main class="main-container">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <section class="form-section">
+        <h2>Search Warehouses</h2>
+        <form id="searchForm">
+          <select id="searchType" required>
+            <option value="" disabled selected hidden>Search Type</option>
+            <option value="name">By Warehouse Name</option>
+            <option value="location">By Location</option>
+          </select>
+          <input type="text" id="searchValue" placeholder="Enter value..." required />
+          <button type="submit">Search</button>
+        </form>
+        <div id="searchStatus" class="status-message"></div>
+        <ul id="searchResults"></ul>
+      </section>
 
-    <section class="form-section">
-      <h2>Add Warehouse</h2>
-      <form id="addForm">
-        <input type="text" name="name" placeholder="Name" required />
-        <input type="text" name="location" placeholder="Location" required />
-        <input type="number" name="capacity" placeholder="Capacity" required />
-        <button type="submit">Add Warehouse</button>
-      </form>
-    </section>
+      <section class="form-section">
+        <h2>Add Warehouse</h2>
+        <form id="addForm">
+          <input type="text" name="name" placeholder="Name" required />
+          <input type="text" name="location" placeholder="Location" required />
+          <input type="number" name="capacity" placeholder="Capacity" required />
+          <button type="submit">Add Warehouse</button>
+        </form>
+      </section>
+    </div>
 
-    <section class="list-section">
-      <h2>All Warehouses</h2>
-      <button type="button" class="button-primary" onclick="fetchWarehouses()">Refresh List</button>
-      <ul id="warehouseList"></ul>
-    </section>
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <section class="list-section">
+        <h2>All Warehouses</h2>
+        <button type="button" class="button-primary" onclick="fetchWarehouses()">Refresh List</button>
+        <ul id="warehouseList"></ul>
+      </section>
+    </div>
   </main>
 
   <div class="modal" id="updateModal">
