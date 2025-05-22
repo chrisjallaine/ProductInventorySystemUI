@@ -1,4 +1,4 @@
-const express = require("express")
+const express = require("express");
 const {
   createWarehouse,
   getAllWarehouses,
@@ -7,28 +7,27 @@ const {
   getWarehouseById,
   deleteWarehouse,
   updateWarehouse,
-} = require("../controllers/warehouseController")
+} = require("../controllers/warehouseController");
 
-const router = express.Router()
+const router = express.Router();
 
 // ➕ Create Warehouse
-router.post("/", createWarehouse)
+router.post("/", createWarehouse);
 
 // 📋 Get all Warehouses with details
-router.get("/", getAllWarehouses)
-
-router.get("/:id", getWarehouseById)
+router.get("/", getAllWarehouses);
+router.get("/:id", getWarehouseById);
 
 // 🔍 Get by Warehouse Name
-router.get("/name/:name", getWarehouseByName)
+router.get("/name/:name", getWarehouseByName);
 
 // 📍 Get by Location
-router.get("/location/:location", getWarehousesByLocation)
+router.get("/location/:location", getWarehousesByLocation);
 
 // ✏️ Update Warehouse
-router.put("/:id", updateWarehouse)
+router.put("/:id", updateWarehouse);
 
 // ❌ Delete Warehouse
-router.delete("/:id", deleteWarehouse)
+router.delete("/:id", deleteWarehouse);
 
-module.exports = router
+module.exports = router;

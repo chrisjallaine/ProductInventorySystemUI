@@ -39,14 +39,24 @@ exports.getProductById = async (req, res) => {
   }
 }
 
-// 🔍 Get Product by Name (only name, description, price)
+// 🔍 Get Product by Name (allow partial and case-insensitive match)
 exports.getProductByName = async (req, res) => {
   try {
-    const product = await Product.findOne({ name: req.params.name });
-    if (!product) return res.status(404).json({ message: 'Product not found' });
+    const nameQuery = req.params.name.trim().toLowerCase(); // Normalize to lowercase
+    const products = await Product.find({
+      name: { $regex: nameQuery, $options: 'i' } // Case-insensitive and partial match
+    });
 
-    const { name, description, price } = product;
-    res.status(200).json({ name, description, price });
+    if (products.length === 0) return res.status(404).json({ message: 'Product not found' });
+
+    // Send back multiple results
+    const result = products.map(product => ({
+      name: product.name,
+      description: product.description,
+      price: product.price
+    }));
+
+    res.status(200).json(result); // Return all matched products
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

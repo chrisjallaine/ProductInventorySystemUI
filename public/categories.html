@@ -14,7 +14,6 @@
   </header>
 
   <main>
-    <!-- Category Management Section -->
     <section>
       <h2>Category Management</h2>
       <form id="categoryForm">
@@ -34,7 +33,6 @@
     const fetchCategories = async () => {
       const res = await fetch('http://localhost:5000/api/categories/summaries');
       const categories = await res.json();
-      console.log('Fetched Categories:', categories); // Debugging line
       renderCategories(categories);
     };
 
@@ -76,7 +74,7 @@
     $('categorySearch').oninput = async e => {
       const query = e.target.value.trim();
       if (!query) {
-        fetchCategories();
+        fetchCategories();  // Fetch all categories if no input
         return;
       }
       const res = await fetch(`http://localhost:5000/api/categories/name/${encodeURIComponent(query)}`);

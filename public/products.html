@@ -188,10 +188,16 @@
       if (res.status !== 200) {
         div.innerHTML = `<p style="color:red">${result.message}</p>`;
       } else {
-        div.innerHTML = `
-          <p><strong>${result.name}</strong> – ₱${result.price}</p>
-          <p>${result.description}</p>
-        `;
+        // Clear previous results
+        div.innerHTML = '';
+
+        // Loop through all matched products and display them
+        result.forEach(product => {
+          div.innerHTML += `
+            <p><strong>${product.name}</strong> – ₱${product.price}</p>
+            <p>${product.description}</p>
+          `;
+        });
       }
     }
 
