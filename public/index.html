@@ -12,39 +12,51 @@
   <header>
     <img src="https://i.ibb.co/mCzgFRQg/whiplash.png" alt="Whiplash Logo" class="logo" />
     <div class="user-info">
-      <div class="user-avatar">U</div>
+      <div class="user-avatar">NM</div>
     </div>
   </header>
 
-  <div class="two-panel-layout">
+  <div class="three-panel-layout">
+    <!-- Left Panel - Portrait -->
+<div class="left-panel">
+  <div class="left-panel-greeting">
+    <h2>Hello, User!</h2>
+    <p>Here are current updates for you.</p>
+  </div>
+  
+  <div class="portrait-container">
+    <img src="https://i.ibb.co/Fk0yz6YS/Untitled-design-46.png" alt="Portrait" class="portrait-image" />
+  </div>
+</div>
+
     <!-- Center Panel - Dashboard Content -->
     <div class="center-panel">
       <div class="dashboard-header">
         <div class="greeting">
-          <h2>Hello, User!</h2>
-          <p>Here are current updates for you.</p>
+          <br>
+          <p><strong>Dashboard</strong></p>
         </div>
       </div>
 
       <!-- Dashboard Stats in 2x2 Grid -->
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>Total Products</h3>
+          <h3><strong>Total Products</strong></h3>
           <div class="stat-value" id="totalProducts">--</div>
           <div class="stat-label">In inventory</div>
         </div>
         <div class="stat-card">
-          <h3>Categories</h3>
+          <h3><strong>Categories</strong></h3>
           <div class="stat-value" id="totalCategories">--</div>
           <div class="stat-label">Available</div>
         </div>
         <div class="stat-card">
-          <h3>Suppliers</h3>
+          <h3><strong>Suppliers</strong></h3>
           <div class="stat-value" id="totalSuppliers">--</div>
           <div class="stat-label">Active</div>
         </div>
         <div class="stat-card">
-          <h3>Warehouses</h3>
+          <h3><strong>Warehouses</strong></h3>
           <div class="stat-value" id="totalWarehouses">--</div>
           <div class="stat-label">Locations</div>
         </div>
@@ -64,13 +76,14 @@
     </div>
 
     <!-- Right Panel - Navigation Cards -->
-<div class="right-panel">
-  <div class="right-panel-header">
-    <h3>What do you want to do today?</h3>
-    <p>Click a button below to make changes.</p>
-  </div>
-  
-  <ul class="vertical-nav-cards">
+    <div class="right-panel">
+      <div class="right-panel-header">
+        <h3>What do you want to do today?</h3>
+        <p>Click a button below to make actions.</p>
+        <br>
+      </div>
+      
+      <ul class="vertical-nav-cards">
         <li>
           <a href="products.html" class="products-card">
             <div class="card-icon">
@@ -368,20 +381,22 @@
         // Updated to use inventory.category_id instead of product_id.category_id
         document.getElementById("highestStockCard").innerHTML = `
           <h3>HIGHEST STOCK</h3>
-          <p><strong>${highest.product_id.name}</strong><br>
-          ID: ${highest.product_id._id}<br>
-          Category: ${highest.category_id?.name || 'N/A'}<br>
-          Supplier: ${highest.supplier_id?.name || 'N/A'}<br>
-          Stock: ${highest.stock}</p>
+          <p><strong><span style="font-size: 1.2em;">${highest.product_id.name}</strong><br>
+          <br>
+          <strong>ID:</strong> ${highest.product_id._id}<br>
+          <strong>Category:</strong> ${highest.category_id?.name || 'N/A'}<br>
+          <strong>Supplier:</strong> ${highest.supplier_id?.name || 'N/A'}<br>
+          <strong>Stock:</strong> ${highest.stock}</p>
         `;
 
         document.getElementById("lowestStockCard").innerHTML = `
           <h3>LOWEST STOCK</h3>
-          <p><strong>${lowest.product_id.name}</strong><br>
-          ID: ${lowest.product_id._id}<br>
-          Category: ${lowest.category_id?.name || 'N/A'}<br>
-          Supplier: ${lowest.supplier_id?.name || 'N/A'}<br>
-          Stock: ${lowest.stock}</p>
+          <p><strong><span style="font-size: 1.2em;">${lowest.product_id.name}</span></strong><br>
+          <br>
+          <strong>ID:</strong> ${lowest.product_id._id}<br>
+          <strong>Category:</strong> ${lowest.category_id?.name || 'N/A'}<br>
+          <strong>Supplier:</strong> ${lowest.supplier_id?.name || 'N/A'}<br>
+          <strong>Stock:</strong> ${lowest.stock}</p>
         `;
       } catch (error) {
         console.error("Error loading inventory data:", error);

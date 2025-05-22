@@ -1,4 +1,4 @@
-/* CSS updates for two-panel layout with balanced sizing */
+/* CSS updates for three-panel layout with portrait */
 :root {
   --primary: #000000;
   --secondary: #6c757d;
@@ -55,29 +55,84 @@ header {
   font-weight: bold;
 }
 
-/* Two Panel Layout */
-.two-panel-layout {
+/* Three Panel Layout */
+.three-panel-layout {
   display: flex;
   height: calc(100vh - 70px);
   width: 100%;
 }
 
-/* Center Panel - Dashboard Content (BALANCED) */
+/* Left Panel Greeting */
+.left-panel-greeting {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  right: 30px;
+  z-index: 1;
+}
+
+.left-panel-greeting h2 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.8rem;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.left-panel-greeting p {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Update left-panel to be relative for positioning */
+.left-panel {
+  position: relative;
+  flex: 0.8;
+  padding: 0 30px 30px;
+  background-color: #ffffff;
+  border-right: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Adjust portrait container to account for greeting */
+.portrait-container {
+  width: 100%;
+  height: calc(100% - 70px); /* Adjust based on your greeting height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 70px; /* Space for the greeting */
+}
+
+.portrait-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Center Panel - Dashboard Content (Compressed) */
 .center-panel {
-  flex: 2.2;
-  padding: 18px;
+  flex: 1.8;
+  padding: 16px;
   overflow-y: auto;
 }
 
 .dashboard-header {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .greeting h2 {
   margin: 0;
   font-family: 'Inter', sans-serif;
   font-weight: 800;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   color: #333;
 }
 
@@ -86,49 +141,53 @@ header {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
   color: #666;
-  font-size: 15px;
+  font-size: 14px;
 }
 
-/* Dashboard Stats Grid (2x2) - BALANCED */
+/* Dashboard Stats Grid (2x2) - Compressed */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
+/* Update stat cards to black background */
 .stat-card {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 16px;
+  background-color: #ebebeb; /* Black background */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 14px;
   display: flex;
   flex-direction: column;
+  color: var(--primary); /* Text color will be white */
 }
 
+/* If you want to keep other styles intact */
 .stat-card h3 {
-  margin: 0 0 8px;
-  font-size: 14px;
-  color: #666;
+  color: var(--primary); /* Header text in white */
+  margin: 0 0 6px;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .stat-value {
-  font-size: 24px;
+  color: var(--primary); /* Large number in white */
+  font-size: 22px;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .stat-label {
-  color: #888;
-  font-size: 12px;
+  color: var(--primary); /* Slightly transparent white for label */
+  font-size: 11px;
 }
 
-/* Right Panel - Navigation Cards (BALANCED) */
+/* Right Panel - Navigation Cards */
 .right-panel {
   flex: 0.9;
-  padding: 18px;
+  padding: 16px;
   background-color: #e9ecef;
   border-left: 1px solid #eee;
   overflow-y: auto;
@@ -136,15 +195,15 @@ header {
 
 /* Right Panel Header */
 .right-panel-header {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   text-align: center;
 }
 
 .right-panel-header h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-family: 'Inter', sans-serif;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #333;
 }
 
@@ -152,44 +211,44 @@ header {
   margin: 0;
   font-family: 'Inter', sans-serif;
   font-weight: 400;
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
   line-height: 1.4;
 }
 
-/* Vertical Navigation Cards (BALANCED) */
+/* Vertical Navigation Cards */
 .vertical-nav-cards {
   list-style-type: none;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
 }
 
 .vertical-nav-cards li a {
   background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   text-decoration: none;
   color: #333;
   transition: all 0.3s ease;
-  padding: 20px 12px; /* Increased vertical padding from 15px to 20px for more height */
+  padding: 16px 10px;
 }
 
 .vertical-nav-cards .card-icon {
-  font-size: 18px;
-  width: 40px;
-  height: 40px;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
   background-color: #ffffff;
   color: var(--primary);
-  border-radius: 8px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  margin-right: 10px;
   transition: all 0.3s ease;
 }
 
@@ -199,8 +258,8 @@ header {
 
 .vertical-nav-cards .card-content h2 {
   margin: 0;
-  font-size: 14px;
-  margin-bottom: 3px;
+  font-size: 13px;
+  margin-bottom: 2px;
   transition: color 0.3s ease;
   font-weight: 600;
 }
@@ -208,7 +267,7 @@ header {
 .vertical-nav-cards .card-content p {
   margin: 0;
   color: #666;
-  font-size: 12px;
+  font-size: 11px;
   transition: color 0.3s ease;
   line-height: 1.3;
 }
@@ -230,35 +289,50 @@ header {
   color: #f0f5ff;
 }
 
-/* Summary cards styling - BALANCED */
+/* Summary cards styling - Compressed */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .summary {
   background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 16px;
-  border-bottom: 4px solid var(--primary);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 14px;
+  border-bottom: 3px solid var(--primary);
 }
 
+/* Update summary card headers */
 .summary h3 {
   margin-top: 0;
-  font-size: 16px;
-  color: #444;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 10px;
+  font-size: 14px;
+  color: white; /* Changed to white */
+  padding: 8px 14px; /* Added padding */
+  border-bottom: none; /* Removed border */
+  margin-bottom: 8px;
+  background-color: var(--primary); /* Black background */
+  border-radius: 8px 8px 0 0; /* Rounded top corners */
 }
 
+/* Adjust summary card content padding */
+.summary {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0; /* Changed from 14px to 0 */
+  border-bottom: 3px solid var(--primary);
+  overflow: hidden; /* Ensures rounded corners work */
+}
+
+/* Add padding to the content area */
 .summary p {
-  margin: 8px 0;
+  margin: 0;
+  padding: 14px;
   line-height: 1.4;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .summary strong {
