@@ -155,30 +155,40 @@ exports.getWarehousesByLocation = async (req, res) => {
   }
 };
 
-// Delete a warehouse by ID, including all inventory linked to it
+// Delete a warehouse by ID with integrity check (prevent deletion if referenced in inventory)
 exports.deleteWarehouse = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // Extract warehouse ID from request params
 
     // Validate if ID is a valid Mongo ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid warehouse ID' });
+      return res.status(400).json({ message: 'Invalid warehouse ID' }); // Return 400 if ID is invalid
     }
 
+    // Find warehouse by ID
     const warehouse = await Warehouse.findById(id);
     if (!warehouse) {
-      return res.status(404).json({ message: 'Warehouse not found' });
+      return res.status(404).json({ message: 'Warehouse not found' }); // 404 if warehouse does not exist
     }
 
-    // Delete all inventory records linked to the warehouse first
-    await Inventory.deleteMany({ warehouse_id: id });
-    // Delete the warehouse itself
-    await Warehouse.findByIdAndDelete(id);
+    // Check if any inventory items reference this warehouse
+    const referencingInventory = await Inventory.find({ warehouse_id: id });
 
-    res.status(200).json({ message: 'Warehouse deleted' });
+    // If inventory records are found, block deletion and send warning
+    if (referencingInventory.length > 0) {
+      return res.status(409).json({
+        message: `Cannot delete warehouse. It is referenced by ${referencingInventory.length} inventory item(s).`,
+        referencingCount: referencingInventory.length
+      });
+    }
+
+    // No inventory references found — safe to delete warehouse
+    await Warehouse.findByIdAndDelete(id); // Delete the warehouse document
+
+    res.status(200).json({ message: 'Warehouse deleted successfully.' }); // Send 200 OK with success message
   } catch (err) {
-    console.error('[deleteWarehouse] Error:', err);
-    res.status(500).json({ message: err.message });
+    console.error('[deleteWarehouse] Error:', err); // Log error to server
+    res.status(500).json({ message: err.message }); // 500 Internal Server Error fallback
   }
 };
 

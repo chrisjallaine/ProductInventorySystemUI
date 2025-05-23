@@ -75,6 +75,14 @@
     </div>
   </div>
 
+  <!-- Alert Box -->
+  <div id="alertBox" style="display:none;" class="alert-box">
+    <div class="alert-content">
+      <span id="alertMessage"></span>
+      <button class="alert-close" onclick="hideAlert()">×</button>
+    </div>
+  </div>
+
   <script>
     const $ = id => document.getElementById(id)
     const updateModal = $('updateModal')
@@ -89,13 +97,48 @@
     }
 
     const deleteWarehouse = async id => {
-      if (!confirm('Delete this warehouse?')) return
-      await fetch(`http://localhost:5000/api/warehouses/${id}`, {
-        method: 'DELETE'
-      })
-      alert('Deleted.')
-      fetchWarehouses()
-      refreshSearch()
+      if (!confirm('Delete this warehouse?')) return;
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/warehouses/${id}`, {
+          method: 'DELETE'
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 409) {
+            // Custom warning if inventory items still reference the warehouse
+            showAlert(result.message || 'Warehouse is still in use.');
+          } else {
+            showAlert('Failed to delete warehouse.');
+          }
+        } else {
+          alert('Deleted.');
+          fetchWarehouses();
+          refreshSearch();
+        }
+      } catch (err) {
+        console.error('[deleteWarehouse] Error:', err);
+        showAlert('Server error occurred while deleting.');
+      }
+    }
+
+    const showAlert = (message) => {
+      const alertBox = $('alertBox');
+      const alertMessage = $('alertMessage');
+
+      alertMessage.textContent = message;
+      alertBox.style.display = 'flex';
+
+      // Auto-hide after 6 seconds
+      setTimeout(() => {
+        hideAlert();
+      }, 6000);
+    }
+
+    const hideAlert = () => {
+      $('alertBox').style.display = 'none';
     }
 
     const openUpdateModal = (w) => {
@@ -176,10 +219,9 @@
       const res = await fetch(`http://localhost:5000/api/warehouses/${type}/${value}`)
 
       if (!res.ok) {
-        // Handle the case where no warehouses are found (e.g., 404)
         $('searchResults').innerHTML = '<p class="message-text">No warehouses found</p>';
         if ($('searchStatus')) {
-          $('searchStatus').classList.remove('error'); // Adjust styling as needed
+          $('searchStatus').classList.remove('error');
         }
         return;
       }
