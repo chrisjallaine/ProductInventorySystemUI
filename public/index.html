@@ -141,10 +141,30 @@
     </div>
   </div>
   
-  <!-- Quick Add Button -->
-  <div class="quick-add" id="quickAddBtn">
-    <i class="fas fa-plus"></i>
+  <!-- Show Stats Button -->
+  <div class="show-stats-button" id="showStatsBtn">
+    <i class="fas fa-eye"></i>
   </div>
+
+  <!-- Quick Action Buttons Removed -->
+  <!-- <div class="quick-actions" id="quickActions"> -->
+  <!--   <div class="quick-action-btn" onclick="openModal('productModal')"> -->
+  <!--     <i class="fas fa-box"></i> -->
+  <!--     <span>Add Product</span> -->
+  <!--   </div> -->
+  <!--   <div class="quick-action-btn" onclick="openModal('categoryModal')"> -->
+  <!--     <i class="fas fa-tags"></i> -->
+  <!--     <span>Add Category</span> -->
+  <!--   </div> -->
+  <!--   <div class="quick-action-btn" onclick="openModal('supplierModal')"> -->
+  <!--     <i class="fas fa-truck"></i> -->
+  <!--     <span>Add Supplier</span> -->
+  <!--   </div> -->
+  <!--   <div class="quick-action-btn" onclick="openModal('warehouseModal')"> -->
+  <!--     <i class="fas fa-building"></i> -->
+  <!--     <span>Add Warehouse</span> -->
+  <!--   </div> -->
+  <!-- </div> -->
 
   <!-- Add Product Modal -->
   <div class="modal" id="productModal">
@@ -274,20 +294,20 @@
 
   <script>
     // Toggle Quick Action Menu
-    const quickAddBtn = document.getElementById('quickAddBtn');
+    const showStatsBtn = document.getElementById('showStatsBtn');
     const quickActions = document.getElementById('quickActions');
 
-    quickAddBtn.addEventListener('click', function() {
+    showStatsBtn.addEventListener('click', function() {
       const isDisplayed = quickActions.style.display === 'flex';
       quickActions.style.display = isDisplayed ? 'none' : 'flex';
-      quickAddBtn.innerHTML = isDisplayed ? '<i class="fas fa-plus"></i>' : '<i class="fas fa-times"></i>';
+      showStatsBtn.innerHTML = isDisplayed ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-times"></i>';
     });
 
     // Modal Functions
     function openModal(modalId) {
       document.getElementById(modalId).style.display = 'flex';
       quickActions.style.display = 'none';
-      quickAddBtn.innerHTML = '<i class="fas fa-plus"></i>';
+      showStatsBtn.innerHTML = '<i class="fas fa-eye"></i>';
     }
 
     function closeModal(modalId) {
@@ -422,7 +442,7 @@
     async function loadFormOptions() {
       try {
         // Load categories
-           fetch("http://localhost:5000/api/categories")
+        fetch("http://localhost:5000/api/categories")
           .then(res => res.json())
           .then(data => {
             const select = document.getElementById("productCategory");
