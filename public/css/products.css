@@ -1,17 +1,26 @@
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
   background: #f7f9fc;
+  color: #333;
   margin: 0;
   padding: 0;
 }
 
 header {
-  background-color: #333;
+  background-color: #000;
   color: white;
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0;
 }
 
 .back-link {
@@ -20,118 +29,330 @@ header {
   font-weight: 600;
 }
 
-main {
-  padding: 2rem;
+h1, h2, h3 {
+  margin: 0;
+  font-weight: 600;
+  color: inherit;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+/* Two Panel Layout */
+.main-container {
   display: grid;
-  gap: 2rem;
-}
-
-.form-section, .list-section {
-  background: white;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  height: calc(100vh - 100px);
+  overflow: hidden;
 }
 
-
-/* Original styles */
-input, textarea, select {
-  width: 100%;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  font-family: inherit;
-  border: 1px solid #ccc;
-  border-radius: 20px;  /* Rounded corners */
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Reduced from 1.5rem */
+  overflow-y: auto;
 }
 
-/* Add a container for the form fields to control width */
-.form-section form {
-  max-width: 700px;  /* Increased width from 600px to 700px */
+.left-panel {
+  padding-right: 0.75rem;
 }
 
-/* Fix textarea height */
-textarea {
-  min-height: 200px;  /* Tall textarea */
-  resize: vertical;  /* Allow vertical resizing */
+.right-panel {
+  padding-left: 0.75rem;
 }
 
-button {
-  background: #4CAF50;
+/* Minimized Left Panel Styles */
+.left-panel .form-section {
+  padding: 0.5rem; /* Reduced from 1rem */
+}
+
+.left-panel h2 {
+  font-size: 0.9rem; /* Reduced from 1.1rem */
+  margin-bottom: 0.4rem; /* Reduced from 0.75rem */
+}
+
+.left-panel form {
+  gap: 0.3rem; /* Reduced from 0.5rem */
+}
+
+.left-panel .form-group {
+  margin-bottom: 0.25rem; /* Reduced from 0.5rem */
+}
+
+.left-panel input, 
+.left-panel select, 
+.left-panel textarea {
+  padding: 0.25rem; /* Reduced from 0.4rem */
+  font-size: 0.7rem; /* Reduced from 0.75rem */
+  border-radius: 15px; /* Reduced from 25px */
+}
+
+.left-panel textarea {
+  min-height: 40px; /* Reduced from 60px */
+  padding: 0.3rem; /* Reduced from 0.5rem */
+}
+
+.left-panel label {
+  font-size: 0.7rem; /* Reduced from 0.85rem */
+  margin-bottom: 0.1rem; /* Reduced from 0.2rem */
+}
+
+.left-panel .button-primary,
+.left-panel button[type="submit"] {
+  padding: 0.25rem 0.5rem; /* Reduced from 0.4rem 0.8rem */
+  font-size: 0.7rem; /* Reduced from 0.85rem */
+  border-radius: 10px; /* Reduced from 15px */
+  margin-top: 0.25rem;
+}
+
+.left-panel #searchResult {
+  margin-top: 0.4rem; /* Reduced from 0.75rem */
+  padding: 0.3rem; /* Reduced from 0.5rem */
+  font-size: 0.7rem; /* Reduced from 0.85rem */
+}
+
+/* Regular Buttons for Right Panel */
+.button-primary, 
+button[type="submit"] {
+  background: #3b3b3b;
   color: white;
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.8rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 15px;
   cursor: pointer;
   font-weight: 600;
+  align-self: flex-start;
+  width: fit-content;
+  font-size: 0.85rem;
 }
 
-button:hover {
-  background: #45a049;
+.button-primary:hover, 
+button[type="submit"]:hover {
+  background: #848484;
 }
 
-.product-list {
-  list-style: none;
-  padding: 0;
+.btn {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+  color: white;
 }
 
-.product-list li {
-  border-bottom: 1px solid #ddd;
-  padding: 1rem 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.button-group button {
-  margin-left: 0.5rem;
-}
-
-.edit-btn {
+.btn-update {
   background: #2196F3;
 }
 
-.delete-btn {
+.btn-update:hover {
+  background: #1976D2;
+}
+
+.btn-delete {
   background: #f44336;
 }
 
-/* ===== Modal Styles ===== */
+.btn-delete:hover {
+  background: #d32f2f;
+}
+
+/* Sections */
+.form-section, .list-section {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  width: 100%;
+}
+
+.list-section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.list-section ul {
+  flex: 1;
+  overflow-y: auto;
+}
+
+section h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 0.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.4rem;
+  font-family: inherit;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  font-size: 0.75rem;
+  background-color: #ededed;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+  padding: 0.5rem;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #666;
+  font-size: 0.75rem;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* List Styles */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+}
+
+.message-text {
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.card {
+  padding: 0.75rem 0;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+}
+
+.card-content > div {
+  margin-bottom: 0.15rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+/* Search Results */
+#searchResult {
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+  font-size: 0.85rem;
+}
+
+#searchResult:empty {
+  display: none;
+}
+
+#searchResult p {
+  margin-bottom: 0.25rem;
+}
+
+/* Modal */
 .modal {
   display: none;
   position: fixed;
-  z-index: 100;
+  z-index: 1000;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0,0,0,0.5);
   justify-content: center;
   align-items: center;
 }
 
 .modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  width: 100%;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 6px;
+  width: 90%;
   max-width: 500px;
   position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.3s ease-in-out;
 }
 
 .close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #f44336;
-  color: white;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
   border: none;
-  padding: 0.3rem 0.6rem;
-  font-weight: bold;
-  border-radius: 4px;
+  font-size: 1.2rem;
   cursor: pointer;
+  color: #666;
 }
 
-@keyframes fadeIn {
-  from { transform: scale(0.95); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.close-btn:hover {
+  color: #000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    height: auto;
+    overflow: visible;
+  }
+  
+  .left-panel,
+  .right-panel {
+    padding: 0;
+    overflow-y: visible;
+  }
+  
+  .list-section {
+    height: auto;
+  }
 }
