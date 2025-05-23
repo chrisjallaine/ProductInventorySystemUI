@@ -2,7 +2,7 @@ const Supplier = require('../models/Supplier');
 const Product = require('../models/Product');
 const Inventory = require('../models/Inventory');
 
-// ➕ Create Supplier(s)
+// Create Supplier(s)
 exports.createSupplier = async (req, res) => {
   try {
     const isArray = Array.isArray(req.body);
@@ -20,7 +20,7 @@ exports.createSupplier = async (req, res) => {
   }
 };
 
-// 📋 Get All Suppliers
+// Get All Suppliers
 exports.getAllSuppliers = async (req, res) => {
   try {
     const suppliers = await Supplier.find();
@@ -30,7 +30,7 @@ exports.getAllSuppliers = async (req, res) => {
   }
 };
 
-// 🔍 Get Supplier by ID
+// Get Supplier by ID
 exports.getSupplierById = async (req, res) => {
   try {
     const supplier = await Supplier.findById(req.params.id);
@@ -43,7 +43,7 @@ exports.getSupplierById = async (req, res) => {
   }
 };
 
-// 🔍 Get Supplier by Name
+// Get Supplier by Name
 exports.getSupplierByName = async (req, res) => {
   try {
     const name = req.params.name;
@@ -61,7 +61,7 @@ exports.getSupplierByName = async (req, res) => {
   }
 };
 
-// ✏️ Update Supplier
+// Update Supplier
 exports.updateSupplier = async (req, res) => {
   try {
     const updated = await Supplier.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -74,7 +74,7 @@ exports.updateSupplier = async (req, res) => {
   }
 };
 
-// 🗑️ Delete Supplier
+// Delete Supplier
 exports.deleteSupplier = async (req, res) => {
   try {
     const deleted = await Supplier.findByIdAndDelete(req.params.id);
@@ -87,7 +87,7 @@ exports.deleteSupplier = async (req, res) => {
   }
 };
 
-// 📦 Get all suppliers of products matching a given name
+// Get all suppliers of products matching a given name
 exports.getSuppliersByProduct = async (req, res) => {
   try {
     const value = req.params.value.trim();
@@ -114,7 +114,7 @@ exports.getSuppliersByProduct = async (req, res) => {
   }
 };
 
-// 🏢 Get all suppliers supplying to a specific warehouse
+// Get all suppliers supplying to a specific warehouse
 exports.getSuppliersByWarehouse = async (req, res) => {
   try {
     const inventory = await Inventory.find({ warehouse_id: req.params.warehouseId });
