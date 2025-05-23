@@ -11,7 +11,7 @@ const connectDB = async () => {
     mongoose.set("strictQuery", false);
 
     // Attempt to connect using the connection string from environment variables
-    // ⚠️ We're not passing options like useNewUrlParser because they are unnecessary in Mongoose v6+
+    // We're not passing options like useNewUrlParser because they are unnecessary in Mongoose v6+
     const conn = await mongoose.connect(process.env.MONGO_URI);
 
     // Log success with host information
