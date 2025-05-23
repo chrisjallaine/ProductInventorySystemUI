@@ -117,40 +117,57 @@ header {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* Center Panel - Dashboard Content (Compressed) */
+/* Updated Center Panel with wider margins */
 .center-panel {
   flex: 1.8;
-  padding: 16px;
+  padding: 20px 40px; /* Increased from 16px to 20px top/bottom and 16px to 40px left/right */
   overflow-y: auto;
 }
 
+/* Adjust dashboard header to match new padding */
 .dashboard-header {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
-.greeting h2 {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1.4rem;
-  color: #333;
-}
-
-.greeting p {
-  margin: 5px 0 0;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  color: #666;
-  font-size: 14px;
-}
-
-/* Dashboard Stats Grid (2x2) - Compressed */
+/* Update stats grid gap to be slightly larger */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 25px;
+  gap: 16px; /* Increased from 12px */
+  margin-bottom: 30px; /* Increased from 25px */
+}
+
+/* Make summary cards take full width with new margins - UPDATED FOR STOCK CARDS */
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Forces exactly 2 equal columns for the stock cards */
+  gap: 20px; /* Increased from 14px */
+  margin-top: 20px; /* Increased from 18px */
+  max-width: 800px; /* Limits total width to prevent cards from being too wide */
+}
+
+/* Adjust summary card padding */
+.summary {
+  padding: 0;
+  margin: 0; /* Removed side margins for better fit */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .center-panel {
+    padding: 16px 20px; /* Slightly reduced padding on mobile */
+  }
+  
+  .stats-grid {
+    gap: 12px;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 16px;
+    max-width: none; /* Remove width restriction on mobile */
+  }
 }
 
 /* Update stat cards to black background */
@@ -235,7 +252,7 @@ header {
   text-decoration: none;
   color: #333;
   transition: all 0.3s ease;
-  padding: 16px 10px;
+  padding: 22px 10px;
 }
 
 .vertical-nav-cards .card-icon {
@@ -289,20 +306,14 @@ header {
   color: #f0f5ff;
 }
 
-/* Summary cards styling - Compressed */
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-  margin-top: 18px;
-}
-
+/* Summary cards styling - Updated for stock cards */
 .summary {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 14px;
+  padding: 0; /* Changed from 14px to 0 */
   border-bottom: 3px solid var(--primary);
+  overflow: hidden; /* Ensures rounded corners work */
 }
 
 /* Update summary card headers */
@@ -315,16 +326,6 @@ header {
   margin-bottom: 8px;
   background-color: var(--primary); /* Black background */
   border-radius: 8px 8px 0 0; /* Rounded top corners */
-}
-
-/* Adjust summary card content padding */
-.summary {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 0; /* Changed from 14px to 0 */
-  border-bottom: 3px solid var(--primary);
-  overflow: hidden; /* Ensures rounded corners work */
 }
 
 /* Add padding to the content area */
@@ -505,25 +506,5 @@ header {
   .stats-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .summary-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .vertical-nav-cards .card-content h2 {
-    font-size: 13px;
-  }
-  
-  .vertical-nav-cards .card-content p {
-    font-size: 11px;
-  }
-  
-  .vertical-nav-cards .card-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
   }
 }
