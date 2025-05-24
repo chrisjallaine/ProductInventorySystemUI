@@ -179,6 +179,9 @@
       const product = await api(`products/${id}`);
       $('categoryField').value = product.category_id?.name || '';
       $('supplierField').value = product.supplier_id?.name || '';
+      // Store category_id and supplier_id for form submission
+      $('categoryField').dataset.categoryId = product.category_id?._id || '';
+      $('supplierField').dataset.supplierId = product.supplier_id?._id || '';
     };
 
     const updateUpdateCategoryAndSupplier = async () => {
@@ -187,6 +190,9 @@
       const product = await api(`products/${id}`);
       $('updateCategory').value = product.category_id?.name || '';
       $('updateSupplier').value = product.supplier_id?.name || '';
+      // Store category_id and supplier_id for form submission
+      $('updateCategory').dataset.categoryId = product.category_id?._id || '';
+      $('updateSupplier').dataset.supplierId = product.supplier_id?._id || '';
     };
 
     const fetchInventory = async () => {
@@ -236,6 +242,8 @@
         await api('inventory', 'POST', {
           product_id: $('productSelect').value,
           warehouse_id: $('warehouseSelect').value,
+          category_id: $('categoryField').dataset.categoryId || '',
+          supplier_id: $('supplierField').dataset.supplierId || '',
           stock: parseInt($('stock').value, 10)
         });
         showMessage($('formStatus'), 'Inventory successfully added!');
