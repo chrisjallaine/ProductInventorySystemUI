@@ -11,23 +11,23 @@ const {
 
 const router = express.Router();
 
-// ➕ Create Warehouse
+// Create Warehouse
 router.post("/", createWarehouse);
 
-// 📋 Get all Warehouses with details
+// Get all Warehouses with details
 router.get("/", getAllWarehouses);
 router.get("/:id", getWarehouseById);
 
-// 🔍 Get by Warehouse Name
+// Get by Warehouse Name
 router.get("/name/:name", getWarehouseByName);
 
-// 📍 Get by Location
+// Get by Location
 router.get("/location/:location", getWarehousesByLocation);
 
-// ✏️ Update Warehouse
+// Update Warehouse
 router.put("/:id", updateWarehouse);
 
-// ❌ Delete Warehouse
+// Delete Warehouse
 router.delete("/:id", deleteWarehouse);
 
 module.exports = router;
