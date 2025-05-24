@@ -6,14 +6,13 @@ const mongoose = require('mongoose');
 exports.createCategory = async (req, res) => {
   try {
     const { name } = req.body;
-
     if (!name) return res.status(400).json({ message: 'Category name is required' });
 
-    // Check for duplicate category by exact name
     const existing = await Category.findOne({ name });
+
     if (existing) {
       return res.status(409).json({
-        message: 'Category already exists',
+        message: 'Category already exists with the same name.',
         existing
       });
     }
@@ -37,42 +36,40 @@ exports.getAllCategories = async (_req, res) => {
   }
 };
 
-// Get a single category by name (partial, case-insensitive)
+// Get category by name with proper product association
 exports.getCategoryByName = async (req, res) => {
   try {
     const name = req.params.name;
 
-    const category = await Category.findOne({
-      name: { $regex: new RegExp(name, 'i') }
-    }).populate('products');
+    const categories = await Category.aggregate([
+      {
+        $match: {
+          name: { $regex: new RegExp(name, 'i') }
+        }
+      },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: 'category_id',
+          as: 'products'
+        }
+      },
+      {
+        $project: {
+          id: '$_id',
+          name: 1,
+          productCount: { $size: '$products' },
+          products: '$products'
+        }
+      }
+    ]);
 
-    if (!category) return res.status(404).json({ message: 'Category not found' });
-
-    res.status(200).json(category);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// Create category with duplicate warning
-exports.createCategory = async (req, res) => {
-  try {
-    const { name } = req.body;
-    if (!name) return res.status(400).json({ message: 'Category name is required' });
-
-    const existing = await Category.findOne({ name });
-
-    if (existing) {
-      return res.status(409).json({
-        message: 'Category already exists with the same name.',
-        existing
-      });
+    if (!categories || categories.length === 0) {
+      return res.status(404).json({ message: 'Category not found' });
     }
 
-    const category = new Category({ name });
-    await category.save();
-
-    res.status(201).json(category);
+    res.status(200).json(categories[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -100,7 +97,6 @@ exports.deleteCategory = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete category', error: err.message });
   }
 };
-
 
 // Update a category's name
 exports.updateCategoryName = async (req, res) => {
@@ -150,5 +146,3 @@ exports.getAllCategorySummaries = async (_req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
