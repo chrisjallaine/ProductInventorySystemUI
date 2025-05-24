@@ -7,14 +7,41 @@ const mongoose = require('mongoose');
 // Create a new warehouse entry in the database
 exports.createWarehouse = async (req, res) => {
   try {
-    const { name, location, capacity } = req.body; // Extract warehouse details from request
-    const warehouse = new Warehouse({ name, location, capacity }); // Create new Warehouse instance
-    const saved = await warehouse.save(); // Save warehouse to DB
-    res.status(201).json(formatWarehouse(saved)); // Respond with formatted warehouse data, status 201 Created
+    const isArray = Array.isArray(req.body); // Check if batch insert (array)
+
+    if (isArray && req.body.length === 0) {
+      return res.status(400).json({ message: "Empty array is not allowed" }); // Reject empty arrays
+    }
+
+    let result;
+
+    if (isArray) {
+      // For batch insert, skip duplicate logic; rely on database-level uniqueness if needed
+      result = await Warehouse.insertMany(req.body, { ordered: false });
+    } else {
+      const { name, location, capacity } = req.body; // Extract warehouse details from request
+
+      // Check if a warehouse with identical fields already exists
+      const existing = await Warehouse.findOne({ name, location, capacity });
+
+      if (existing) {
+        return res.status(409).json({
+          message: "Warehouse already exists with identical fields.",
+          existing: formatWarehouse(existing)
+        });
+      }
+
+      const warehouse = new Warehouse({ name, location, capacity }); // Create new Warehouse instance
+      result = await warehouse.save(); // Save warehouse to DB
+    }
+
+    // Respond with formatted warehouse data (single or batch), status 201 Created
+    res.status(201).json(Array.isArray(result) ? result.map(formatWarehouse) : formatWarehouse(result));
   } catch (err) {
-    res.status(400).json({ message: err.message }); // On error, send 400 Bad Request with error message
+    res.status(500).json({ message: "Failed to create warehouse(s)", error: err.message }); // Server error fallback
   }
 };
+
 
 // Get a single warehouse by its ID, including related data and current inventory usage
 exports.getWarehouseById = async (req, res) => {

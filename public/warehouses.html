@@ -3,23 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Supplier Management</title>
+  <title>Warehouse Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/suppliers.css" />
+  <link rel="stylesheet" href="css/warehouses.css" />
 </head>
 <body>
   <header>
     <a href="index.html" class="back-link">← Dashboard</a>
-    <h1>Supplier Management</h1>
+    <h1>Warehouse Management</h1>
   </header>
 
   <main class="main-container">
     <!-- Left Panel -->
     <div class="left-panel">
       <section class="form-section">
-        <h2>Search Suppliers</h2>
+        <h2>Search Warehouses</h2>
         <form id="searchForm">
-          <input type="text" id="searchValue" placeholder="Enter supplier name..." required />
+          <select id="searchType" required>
+            <option value="" disabled selected hidden>Search Type</option>
+            <option value="name">By Warehouse Name</option>
+            <option value="location">By Location</option>
+          </select>
+          <input type="text" id="searchValue" placeholder="Enter value..." required />
           <button type="submit">Search</button>
         </form>
         <div id="searchStatus" class="status-message"></div>
@@ -27,14 +32,12 @@
       </section>
 
       <section class="form-section">
-        <h2>Add Supplier</h2>
+        <h2>Add Warehouse</h2>
         <form id="addForm">
-          <input type="text" name="name" placeholder="Supplier Name" required />
-          <input type="text" name="contact_info" placeholder="Contact Info" />
-          <input type="email" name="email" placeholder="Email Address" />
-          <input type="text" name="address" placeholder="Physical Address" />
-          <input type="number" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
-          <button type="submit">Add Supplier</button>
+          <input type="text" name="name" placeholder="Name" required />
+          <input type="text" name="location" placeholder="Location" required />
+          <input type="number" name="capacity" placeholder="Capacity" required />
+          <button type="submit">Add Warehouse</button>
         </form>
       </section>
     </div>
@@ -42,9 +45,9 @@
     <!-- Right Panel -->
     <div class="right-panel">
       <section class="list-section">
-        <h2>All Suppliers</h2>
-        <button type="button" class="button-primary" onclick="fetchSuppliers()">Refresh List</button>
-        <ul id="supplierList"></ul>
+        <h2>All Warehouses</h2>
+        <button type="button" class="button-primary" onclick="fetchWarehouses()">Refresh List</button>
+        <ul id="warehouseList"></ul>
       </section>
     </div>
   </main>
@@ -53,28 +56,20 @@
   <div class="modal" id="updateModal">
     <div class="modal-content">
       <button class="close-btn" onclick="hideModal()">×</button>
-      <h2>Update Supplier</h2>
+      <h2>Update Warehouse</h2>
       <form id="updateForm">
-        <input type="hidden" id="updateId" name="_id" />
+        <input type="hidden" id="updateId" />
         <div class="form-group">
           <label for="updateName">Name:</label>
-          <input type="text" id="updateName" name="name" placeholder="Supplier Name" required />
+          <input type="text" id="updateName" placeholder="Name" required />
         </div>
         <div class="form-group">
-          <label for="updateContact">Contact Info:</label>
-          <input type="text" id="updateContact" name="contact_info" placeholder="Contact Info" />
+          <label for="updateLocation">Location:</label>
+          <input type="text" id="updateLocation" placeholder="Location" required />
         </div>
         <div class="form-group">
-          <label for="updateEmail">Email:</label>
-          <input type="email" id="updateEmail" name="email" placeholder="Email Address" />
-        </div>
-        <div class="form-group">
-          <label for="updateAddress">Address:</label>
-          <input type="text" id="updateAddress" name="address" placeholder="Physical Address" />
-        </div>
-        <div class="form-group">
-          <label for="updateRating">Rating:</label>
-          <input type="number" id="updateRating" name="rating" placeholder="Rating (1-5)" min="1" max="5" />
+          <label for="updateCapacity">Capacity:</label>
+          <input type="number" id="updateCapacity" placeholder="Capacity" required />
         </div>
         <button type="submit">Save Changes</button>
       </form>
@@ -93,160 +88,168 @@
     const $ = id => document.getElementById(id);
     const updateModal = $('updateModal');
     const searchForm = $('searchForm');
-
     let latestSearch = null;
 
-    // Fetch all suppliers
-    const fetchSuppliers = async () => {
-      const res = await fetch("http://localhost:5000/api/suppliers");
+    const fetchWarehouses = async () => {
+      const res = await fetch("http://localhost:5000/api/warehouses");
       const data = await res.json();
-      renderList(data, "supplierList");
+      renderList(data, "warehouseList");
     };
 
-    // Show a styled alert box
-    const showAlert = (message) => {
-      $('alertMessage').textContent = message;
-      $('alertBox').style.display = 'flex';
-      setTimeout(hideAlert, 6000); // Auto-hide after 6 seconds
-    };
-
-    // Hide the alert box
-    const hideAlert = () => {
-      $('alertBox').style.display = 'none';
-    };
-
-    // Delete supplier with referential integrity check
-    const deleteSupplier = async id => {
-      if (!confirm("Delete this supplier?")) return;
+    const deleteWarehouse = async id => {
+      if (!confirm("Delete this warehouse?")) return;
 
       try {
-        const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, {
+        const res = await fetch(`http://localhost:5000/api/warehouses/${id}`, {
           method: "DELETE"
         });
 
         const result = await res.json();
 
-        if (res.status === 409) {
-          showAlert(result.message || "Supplier is still linked to products.");
-          return;
-        }
-
         if (!res.ok) {
-          throw new Error(result.message || "Failed to delete supplier");
+          if (res.status === 409) {
+            showAlert(result.message || "Warehouse is still in use.");
+          } else {
+            showAlert("Failed to delete warehouse.");
+          }
+        } else {
+          alert("Deleted.");
+          fetchWarehouses();
+          refreshSearch();
         }
-
-        alert("Supplier deleted successfully.");
-        fetchSuppliers();
-        refreshSearch();
-
       } catch (err) {
-        console.error('[deleteSupplier] Error:', err);
+        console.error("[deleteWarehouse] Error:", err);
         showAlert("Server error occurred while deleting.");
       }
     };
 
-    // Show update modal and populate form fields
-    const openUpdateModal = (supplier) => {
-      $('updateId').value = supplier._id;
+    const showAlert = (message) => {
+      $('alertMessage').textContent = message;
+      $('alertBox').style.display = 'flex';
+      setTimeout(hideAlert, 6000); // Auto-hide after 6s
+    };
 
-      Object.entries(supplier).forEach(([key, val]) => {
-        let elementId = `update${key.charAt(0).toUpperCase() + key.slice(1)}`;
-        if (key === 'contact_info') elementId = 'updateContact';
-        const element = $(elementId);
-        if (element) element.value = val || '';
-      });
+    const hideAlert = () => {
+      $('alertBox').style.display = 'none';
+    };
 
+    const openUpdateModal = (w) => {
+      $('updateId').value = w._id;
+      $('updateName').value = w.name;
+      $('updateLocation').value = w.location;
+      $('updateCapacity').value = w.capacity;
       updateModal.style.display = 'flex';
     };
 
-    const hideModal = () => updateModal.style.display = 'none';
+    const hideModal = () => {
+      updateModal.style.display = 'none';
+    };
 
-    // Resubmit latest search
+    // Handle new warehouse form
+    $('addForm').addEventListener("submit", async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
+
+      try {
+        const res = await fetch("http://localhost:5000/api/warehouses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const result = await res.json();
+
+        if (res.status === 409) {
+          showAlert(result.message || "Duplicate warehouse.");
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(result.message || "Failed to add warehouse.");
+        }
+
+        alert("Warehouse added!");
+        e.target.reset();
+        fetchWarehouses();
+
+      } catch (err) {
+        console.error('[addWarehouse] Error:', err);
+        showAlert("Warehouse already existed.");
+      }
+    });
+
+    // Handle warehouse update
+    $('updateForm').addEventListener("submit", async e => {
+      e.preventDefault();
+      const id = $('updateId').value;
+      const name = $('updateName').value;
+      const location = $('updateLocation').value;
+      const capacity = Number($('updateCapacity').value);
+
+      await fetch(`http://localhost:5000/api/warehouses/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, location, capacity })
+      });
+
+      hideModal();
+      fetchWarehouses();
+      refreshSearch();
+    });
+
+    const renderList = (data, targetId, statusElement = null) => {
+      const ul = $(targetId);
+      if (!data.length) {
+        if (statusElement) showMessage(statusElement, "No warehouses found", false);
+        ul.innerHTML = '<p class="message-text">No warehouses found</p>';
+        return;
+      }
+
+      ul.innerHTML = data.map(w => `
+        <li class="card">
+          <div class="card-content">
+            <div><strong>Name:</strong> ${w.name}</div>
+            <div><strong>Location:</strong> ${w.location}</div>
+            <div><strong>Capacity:</strong> ${w.capacity}</div>
+            <div><strong>Utilized:</strong> ${w.utilized ?? 'N/A'}</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-update" onclick='openUpdateModal(${JSON.stringify(w)})'>Update</button>
+            <button class="btn btn-delete" onclick="deleteWarehouse('${w._id}')">Delete</button>
+          </div>
+        </li>
+      `).join('');
+    };
+
+    searchForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const type = $('searchType').value;
+      const value = $('searchValue').value.trim();
+      if (!type || !value) return;
+
+      latestSearch = { type, value };
+
+      const res = await fetch(`http://localhost:5000/api/warehouses/${type}/${value}`);
+      if (!res.ok) {
+        $('searchResults').innerHTML = '<p class="message-text">No warehouses found</p>';
+        if ($('searchStatus')) {
+          $('searchStatus').classList.remove('error');
+        }
+        return;
+      }
+
+      const data = await res.json();
+      renderList(Array.isArray(data) ? data : [data], "searchResults");
+    });
+
     const refreshSearch = () => {
       if (!latestSearch) return;
       const event = new Event('submit');
       searchForm.dispatchEvent(event);
     };
 
-    // Add supplier form submission
-    $('addForm').addEventListener("submit", async e => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const body = Object.fromEntries(formData.entries());
-
-      await fetch("http://localhost:5000/api/suppliers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      alert("Supplier added!");
-      e.target.reset();
-      fetchSuppliers();
-    });
-
-    // Update supplier form
-    $('updateForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const { _id, ...rest } = Object.fromEntries(formData.entries());
-
-      await fetch(`http://localhost:5000/api/suppliers/${_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rest)
-      });
-
-      hideModal();
-      fetchSuppliers();
-      refreshSearch();
-    });
-
-    // Render list of suppliers
-    const renderList = (data, targetId, statusElement = null) => {
-      const ul = $(targetId);
-      if (!data.length) {
-        if (statusElement) statusElement.textContent = 'No suppliers found';
-        ul.innerHTML = '<p class="message-text">No suppliers found</p>';
-        return;
-      }
-
-      ul.innerHTML = data.map(s => `
-        <li class="card">
-          <div class="card-content">
-            <div><strong>Name:</strong> ${s.name}</div>
-            <div><strong>Email:</strong> ${s.email || 'N/A'}</div>
-            <div><strong>Rating:</strong> ${s.rating || 'N/A'}</div>
-            <div><strong>Contact:</strong> ${s.contact_info || 'N/A'}</div>
-            <div><strong>Address:</strong> ${s.address || 'N/A'}</div>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-update" onclick='openUpdateModal(${JSON.stringify(s)})'>Update</button>
-            <button class="btn btn-delete" onclick="deleteSupplier('${s._id}')">Delete</button>
-          </div>
-        </li>
-      `).join('');
-    };
-
-    // Supplier search
-    searchForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      latestSearch = $('searchValue').value.trim();
-      if (!latestSearch) return;
-
-      const res = await fetch(`http://localhost:5000/api/suppliers/name/${encodeURIComponent(latestSearch)}`);
-
-      if (!res.ok) {
-        $('searchResults').innerHTML = '<p class="message-text">No suppliers found</p>';
-        return;
-      }
-
-      const data = await res.json();
-      renderList(Array.isArray(data) ? data : [data], "searchResults", $('searchStatus'));
-    });
-
-    // Initial load
-    fetchSuppliers();
+    fetchWarehouses();
   </script>
 </body>
 </html>
