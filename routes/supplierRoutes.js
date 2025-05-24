@@ -12,26 +12,26 @@ const {
 
 const router = express.Router();
 
-// ➕ Create Supplier
+// Create Supplier
 router.post("/", createSupplier);
 
-// 🔍 Read
+// Read
 router.get("/", getAllSuppliers);
 router.get("/:id", getSupplierById);
 
-// ✏️ Update Supplier
+// Update Supplier
 router.put("/:id", updateSupplier);
 
-// 🗑️ Delete Supplier
+// Delete Supplier
 router.delete("/:id", deleteSupplier);
 
-// 📦 Get all suppliers by product name 
+// Get all suppliers by product name 
 router.get("/product/:value", getSuppliersByProduct);
 
-// 🏢 Get all suppliers supplying to a warehouse
+// Get all suppliers supplying to a warehouse
 router.get("/warehouse/:warehouseId", getSuppliersByWarehouse);
 
-// 🔍 Get supplier by name
+// Get supplier by name
 router.get("/name/:name", getSupplierByName);
 
 module.exports = router;

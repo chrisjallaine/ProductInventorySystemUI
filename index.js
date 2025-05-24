@@ -9,7 +9,6 @@ const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const warehouseRoutes = require("./routes/warehouseRoutes");
 const inventoryRoutes = require('./routes/inventoryRoutes');
-//const inventoryHistoryRoutes = require('./routes/inventoryHistoryRoutes');
 const supplierRoutes = require("./routes/supplierRoutes");
 
 dotenv.config();
@@ -21,15 +20,14 @@ app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
-// 📁 Serve static frontend files from "public" folder
+// Serve static frontend files from "public" folder
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🛣️ Route Mounting
+// Route Mounting
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/warehouses", warehouseRoutes);
 app.use('/api/inventory', inventoryRoutes);
-//app.use('/api/inventory/history', inventoryHistoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
 
 // 404 + Error Handler
