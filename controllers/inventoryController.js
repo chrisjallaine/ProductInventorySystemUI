@@ -6,16 +6,14 @@ const Warehouse = require('../models/Warehouse');
 // Get all inventory items with related product, warehouse, category, and supplier details
 exports.getAllInventory = async (req, res) => {
   try {
-    // Find all inventory documents and populate referenced fields for full details
     const inventory = await Inventory.find()
       .populate('product_id')
       .populate('warehouse_id')
-      .populate('category_id')  // Assumes these references exist on Inventory schema
+      .populate('category_id')
       .populate('supplier_id');
 
-    res.json(inventory);  // Return full list of inventory with populated info
+    res.json(inventory);
   } catch (err) {
-    // Handle errors, log them and return 500 status
     console.error('[getAllInventory] Error:', err);
     res.status(500).json({ error: 'Failed to fetch inventory', details: err.message });
   }
@@ -26,20 +24,16 @@ exports.searchInventory = async (req, res) => {
   try {
     const { type, value } = req.query;
 
-    // Validate presence of required query parameters
     if (!type || !value) {
       return res.status(400).json({ message: 'type and value are required' });
     }
 
-    // Fetch all inventory with populated references
     const results = await Inventory.find()
       .populate('product_id')
       .populate('warehouse_id')
       .populate('category_id')
       .populate('supplier_id');
 
-    // Filter results in-memory based on the type and value provided
-    // Compares lowercased strings for case-insensitive matching
     const filtered = results.filter(inv => {
       switch (type) {
         case 'product_name':
@@ -55,7 +49,7 @@ exports.searchInventory = async (req, res) => {
       }
     });
 
-    res.json(filtered);  // Return the filtered list to the client
+    res.json(filtered);
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ message: 'Server error' });
@@ -64,56 +58,85 @@ exports.searchInventory = async (req, res) => {
 
 // Create a new inventory record and update warehouse stock usage accordingly
 exports.createInventory = async (req, res) => {
-  const { product_id, warehouse_id, stock } = req.body;
+  const { product_id, warehouse_id, category_id, supplier_id, stock } = req.body;
 
-  // Validate required inputs and that stock is numeric
-  if (!product_id || !warehouse_id || typeof stock !== 'number') {
-    return res.status(400).json({ error: 'product_id, warehouse_id, and numeric stock are required' });
+  // Validate required inputs
+  if (
+    !product_id ||
+    !warehouse_id ||
+    !category_id ||
+    !supplier_id ||
+    typeof stock !== 'number'
+  ) {
+    return res.status(400).json({
+      error: 'product_id, warehouse_id, category_id, supplier_id, and numeric stock are required',
+    });
   }
 
-  // Validate the format of MongoDB ObjectIds
-  if (!mongoose.Types.ObjectId.isValid(product_id) || !mongoose.Types.ObjectId.isValid(warehouse_id)) {
-    return res.status(400).json({ error: 'Invalid product_id or warehouse_id format' });
+  // Validate MongoDB ObjectId formats
+  if (
+    !mongoose.Types.ObjectId.isValid(product_id) ||
+    !mongoose.Types.ObjectId.isValid(warehouse_id) ||
+    !mongoose.Types.ObjectId.isValid(category_id) ||
+    !mongoose.Types.ObjectId.isValid(supplier_id)
+  ) {
+    return res.status(400).json({ error: 'Invalid ObjectId format in input' });
   }
 
   try {
-    // Confirm referenced Product exists
+    // Confirm product exists
     const product = await Product.findById(product_id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Confirm referenced Warehouse exists
+    // Confirm warehouse exists
     const warehouse = await Warehouse.findById(warehouse_id);
     if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
+
+    // Validate that product belongs to the submitted category and supplier
+    if (
+      String(product.category_id) !== category_id ||
+      String(product.supplier_id) !== supplier_id
+    ) {
+      return res.status(400).json({
+        warning: 'Mismatch: This product is not associated with the submitted category and/or supplier',
+        productCategory: product.category_id,
+        productSupplier: product.supplier_id,
+        submittedCategory: category_id,
+        submittedSupplier: supplier_id,
+      });
+    }
 
     // Calculate new total warehouse usage after adding stock
     const newTotalStock = (warehouse.currentUsage || 0) + stock;
 
-    // Check warehouse capacity limit to prevent overflow
+    // Check warehouse capacity limit
     if (newTotalStock > warehouse.capacity) {
       return res.status(400).json({
         warning: 'Adding this stock exceeds warehouse capacity',
         currentUsage: warehouse.currentUsage,
-        capacity: warehouse.capacity
+        capacity: warehouse.capacity,
       });
     }
 
-    // Create new Inventory entry, referencing product, warehouse, and product’s category and supplier
+    // Create new inventory entry
     const newInventory = new Inventory({
       product_id,
       warehouse_id,
+      category_id,
+      supplier_id,
       stock,
-      category_id: product.category_id,  // Assumes product has these fields
-      supplier_id: product.supplier_id
     });
 
-    // Save inventory to database
     const savedInventory = await newInventory.save();
 
-    // Update warehouse’s current usage and save
+    // Update warehouse usage
     warehouse.currentUsage = newTotalStock;
     await warehouse.save();
 
-    res.status(201).json({ message: 'Inventory created successfully', inventory: savedInventory });
+    res.status(201).json({
+      message: 'Inventory created successfully',
+      inventory: savedInventory,
+    });
   } catch (err) {
     console.error('[createInventory] Error:', err);
     res.status(500).json({ error: 'Failed to create inventory', details: err.message });
@@ -123,7 +146,6 @@ exports.createInventory = async (req, res) => {
 // Update an existing inventory entry by its ID
 exports.updateInventory = async (req, res) => {
   try {
-    // Find inventory by ID and update with new data from request body
     const updated = await Inventory.findByIdAndUpdate(
       req.params.id,
       {
@@ -132,14 +154,14 @@ exports.updateInventory = async (req, res) => {
         supplier_id: req.body.supplier_id,
         warehouse_id: req.body.warehouse_id,
         stock: req.body.stock,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
-      { new: true }  // Return the updated document
+      { new: true }
     );
 
     if (!updated) return res.status(404).send({ message: 'Inventory not found' });
 
-    res.send(updated);  // Return updated inventory
+    res.send(updated);
   } catch (err) {
     console.error(err);
     res.status(500).send({ message: 'Server error' });
@@ -150,20 +172,17 @@ exports.updateInventory = async (req, res) => {
 exports.deleteInventory = async (req, res) => {
   const { id } = req.params;
 
-  // Validate ID format
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ error: 'Invalid inventory ID' });
   }
 
   try {
-    // Attempt to find and delete inventory by ID
     const deletedInventory = await Inventory.findByIdAndDelete(id);
 
     if (!deletedInventory) {
       return res.status(404).json({ error: 'Inventory not found' });
     }
 
-    // Return success message and deleted inventory data
     res.json({ message: 'Inventory deleted successfully', inventory: deletedInventory });
   } catch (err) {
     console.error('[deleteInventory] Error:', err);
@@ -175,23 +194,21 @@ exports.deleteInventory = async (req, res) => {
 exports.getLowStockItems = async (req, res) => {
   const { warehouseId } = req.query;
 
-  // Validate warehouse ID parameter
   if (!warehouseId || !mongoose.Types.ObjectId.isValid(warehouseId)) {
     return res.status(400).json({ error: 'Valid warehouse ID is required' });
   }
 
   try {
-    // Query inventory documents with stock less than 20 in given warehouse
     const lowStockItems = await Inventory.find({
       warehouse_id: warehouseId,
-      stock: { $lt: 20 }
+      stock: { $lt: 20 },
     })
       .populate('product_id')
       .populate('warehouse_id')
       .populate('category_id')
       .populate('supplier_id');
 
-    res.json(lowStockItems);  // Return list of low stock items
+    res.json(lowStockItems);
   } catch (err) {
     console.error('[getLowStockItems] Error:', err);
     res.status(500).json({ error: 'Failed to fetch low stock items', details: err.message });
@@ -201,19 +218,17 @@ exports.getLowStockItems = async (req, res) => {
 // Get detailed product information by product ID
 exports.getProductDetails = async (req, res) => {
   try {
-    // Find product by ID and populate its category and supplier info
     const product = await Product.findById(req.params.id)
-      .populate('category')  // Assumes product schema has these refs
+      .populate('category')
       .populate('supplier');
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json(product);  // Return product details with populated references
+    res.json(product);
   } catch (err) {
     console.error('[getProductDetails] Error:', err);
     res.status(500).json({ message: 'Error retrieving product', details: err.message });
   }
 };
-
