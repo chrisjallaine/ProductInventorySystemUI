@@ -36,36 +36,6 @@ const supplierSchema = new mongoose.Schema({
     default: 0                // Default is 0 until evaluated; scale of 1–5
   },
 
-  // Tracks product delivery history per supplier
-  deliveryLogs: [
-    {
-      product_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Product", 
-        required: true          // Log must be tied to a product
-      },
-      date: { 
-        type: Date, 
-        required: true          // When the delivery occurred
-      },
-      quantity: { 
-        type: Number, 
-        required: true          // Number of items delivered
-      },
-      warehouse_id: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Warehouse", 
-        required: true          // Tracks where it was delivered
-      }
-    }
-  ],
-
-  // Tracks how many total orders have been made from this supplier
-  orderCount: { 
-    type: Number, 
-    default: 0                 // Starts at 0, increments with each order
-  }
-
 }, { 
   timestamps: true             // Adds createdAt and updatedAt fields
 });
