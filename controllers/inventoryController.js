@@ -12,7 +12,7 @@ exports.getAllInventory = async (req, res) => {
       .populate('category_id')
       .populate('supplier_id');
 
-    res.json(inventory);
+    res.status(200).json(inventory); // Explicit 200 OK
   } catch (err) {
     console.error('[getAllInventory] Error:', err);
     res.status(500).json({ error: 'Failed to fetch inventory', details: err.message });
@@ -49,7 +49,7 @@ exports.searchInventory = async (req, res) => {
       }
     });
 
-    res.json(filtered);
+    res.status(200).json(filtered); // Explicit 200 OK
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ message: 'Server error' });
@@ -60,7 +60,6 @@ exports.searchInventory = async (req, res) => {
 exports.createInventory = async (req, res) => {
   const { product_id, warehouse_id, category_id, supplier_id, stock } = req.body;
 
-  // Validate required inputs
   if (
     !product_id ||
     !warehouse_id ||
@@ -73,7 +72,6 @@ exports.createInventory = async (req, res) => {
     });
   }
 
-  // Validate MongoDB ObjectId formats
   if (
     !mongoose.Types.ObjectId.isValid(product_id) ||
     !mongoose.Types.ObjectId.isValid(warehouse_id) ||
@@ -84,20 +82,17 @@ exports.createInventory = async (req, res) => {
   }
 
   try {
-    // Confirm product exists
     const product = await Product.findById(product_id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    // Confirm warehouse exists
     const warehouse = await Warehouse.findById(warehouse_id);
     if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
 
-    // Validate that product belongs to the submitted category and supplier
     if (
       String(product.category_id) !== category_id ||
       String(product.supplier_id) !== supplier_id
     ) {
-      return res.status(400).json({
+      return res.status(422).json({ // Changed from 400 to 422
         warning: 'Mismatch: This product is not associated with the submitted category and/or supplier',
         productCategory: product.category_id,
         productSupplier: product.supplier_id,
@@ -106,19 +101,16 @@ exports.createInventory = async (req, res) => {
       });
     }
 
-    // Calculate new total warehouse usage after adding stock
     const newTotalStock = (warehouse.currentUsage || 0) + stock;
 
-    // Check warehouse capacity limit
     if (newTotalStock > warehouse.capacity) {
-      return res.status(400).json({
+      return res.status(422).json({ // Changed from 400 to 422
         warning: 'Adding this stock exceeds warehouse capacity',
         currentUsage: warehouse.currentUsage,
         capacity: warehouse.capacity,
       });
     }
 
-    // Create new inventory entry
     const newInventory = new Inventory({
       product_id,
       warehouse_id,
@@ -129,7 +121,6 @@ exports.createInventory = async (req, res) => {
 
     const savedInventory = await newInventory.save();
 
-    // Update warehouse usage
     warehouse.currentUsage = newTotalStock;
     await warehouse.save();
 
@@ -161,7 +152,7 @@ exports.updateInventory = async (req, res) => {
 
     if (!updated) return res.status(404).send({ message: 'Inventory not found' });
 
-    res.send(updated);
+    res.status(200).send(updated);
   } catch (err) {
     console.error(err);
     res.status(500).send({ message: 'Server error' });
@@ -183,7 +174,7 @@ exports.deleteInventory = async (req, res) => {
       return res.status(404).json({ error: 'Inventory not found' });
     }
 
-    res.json({ message: 'Inventory deleted successfully', inventory: deletedInventory });
+    res.status(204).send(); // Changed from 200 to 204 No Content
   } catch (err) {
     console.error('[deleteInventory] Error:', err);
     res.status(500).json({ error: 'Failed to delete inventory', details: err.message });
@@ -208,7 +199,7 @@ exports.getLowStockItems = async (req, res) => {
       .populate('category_id')
       .populate('supplier_id');
 
-    res.json(lowStockItems);
+    res.status(200).json(lowStockItems);
   } catch (err) {
     console.error('[getLowStockItems] Error:', err);
     res.status(500).json({ error: 'Failed to fetch low stock items', details: err.message });
@@ -226,7 +217,7 @@ exports.getProductDetails = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json(product);
+    res.status(200).json(product);
   } catch (err) {
     console.error('[getProductDetails] Error:', err);
     res.status(500).json({ message: 'Error retrieving product', details: err.message });
