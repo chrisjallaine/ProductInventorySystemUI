@@ -5,31 +5,27 @@ const {
   getCategoryByName,
   deleteCategory,
   updateCategoryName,
-  getCategorySummary,
   getAllCategorySummaries
 } = require("../controllers/categoryController");
 
 const router = express.Router();
 
-// 📦 Create Category
+// Create Category
 router.post("/", createCategory);
 
-// 📋 Get All Categories (no products)
+// Get All Categories (no products)
 router.get("/", getAllCategories);
 
-// 📊 Get All Categories with Products and Count
+// Get All Categories with Products and Count
 router.get("/summaries", getAllCategorySummaries);
 
-// 🔍 Get Single Category by Name (with products)
+// Get Single Category by Name (with products)
 router.get("/name/:name", getCategoryByName);
 
-// ✏️ Update Category Name
+// Update Category Name
 router.put("/:id/name", updateCategoryName);
 
-// 🗑️ Delete Category
+// Delete Category
 router.delete("/:id", deleteCategory);
-
-// 📊 Get Single Category Summary
-router.get("/:id/summary", getCategorySummary);
 
 module.exports = router;
