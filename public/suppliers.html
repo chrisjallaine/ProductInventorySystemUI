@@ -49,6 +49,7 @@
     </div>
   </main>
 
+  <!-- Update Modal -->
   <div class="modal" id="updateModal">
     <div class="modal-content">
       <button class="close-btn" onclick="hideModal()">×</button>
@@ -80,88 +81,130 @@
     </div>
   </div>
 
+  <!-- Alert Box (Reusable) -->
+  <div id="alertBox" style="display:none;" class="alert-box">
+    <div class="alert-content">
+      <span id="alertMessage"></span>
+      <button class="alert-close" onclick="hideAlert()">×</button>
+    </div>
+  </div>
+
   <script>
-    const $ = id => document.getElementById(id)
-    const updateModal = $('updateModal')
-    const searchForm = $('searchForm')
+    const $ = id => document.getElementById(id);
+    const updateModal = $('updateModal');
+    const searchForm = $('searchForm');
+    let latestSearch = null;
 
-    let latestSearch = null
-
+    // Fetch all suppliers from the server
     const fetchSuppliers = async () => {
-      const res = await fetch("http://localhost:5000/api/suppliers")
-      const data = await res.json()
-      renderList(data, "supplierList")
-    }
+      const res = await fetch("http://localhost:5000/api/suppliers");
+      const data = await res.json();
+      renderList(data, "supplierList");
+    };
 
+    // Show alert box with custom message
+    const showAlert = (message) => {
+      $('alertMessage').textContent = message;
+      $('alertBox').style.display = 'flex';
+      setTimeout(hideAlert, 6000); // Auto-hide
+    };
+
+    const hideAlert = () => {
+      $('alertBox').style.display = 'none';
+    };
+
+    // Delete a supplier (with referential check)
     const deleteSupplier = async id => {
-      if (!confirm("Delete this supplier?")) return
-      await fetch(`http://localhost:5000/api/suppliers/${id}`, { method: "DELETE" })
-      alert("Deleted.")
-      fetchSuppliers()
-      refreshSearch()
-    }
+      if (!confirm("Delete this supplier?")) return;
 
+      try {
+        const res = await fetch(`http://localhost:5000/api/suppliers/${id}`, {
+          method: "DELETE"
+        });
+
+        const result = await res.json();
+
+        if (res.status === 409) {
+          showAlert(result.message || "Supplier is still linked to products.");
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(result.message || "Failed to delete supplier");
+        }
+
+        alert("Supplier deleted successfully.");
+        fetchSuppliers();
+        refreshSearch();
+      } catch (err) {
+        console.error('[deleteSupplier] Error:', err);
+        showAlert("Server error occurred while deleting.");
+      }
+    };
+
+    // Open modal and pre-fill values
     const openUpdateModal = (supplier) => {
-      $('updateId').value = supplier._id; 
-
+      $('updateId').value = supplier._id;
       Object.entries(supplier).forEach(([key, val]) => {
         let elementId = `update${key.charAt(0).toUpperCase() + key.slice(1)}`;
-        if (key === 'contact_info') {
-          elementId = 'updateContact';
-        }
+        if (key === 'contact_info') elementId = 'updateContact';
         const element = $(elementId);
-        if (element) {
-          element.value = val || '';
-        }
+        if (element) element.value = val || '';
       });
-
-      $('updateModal').style.display = 'flex';
-    }
+      updateModal.style.display = 'flex';
+    };
 
     const hideModal = () => {
-      $('updateModal').style.display = 'none'
-    }
+      updateModal.style.display = 'none';
+    };
 
     const refreshSearch = () => {
-      if (!latestSearch) return
-      const event = new Event('submit')
-      $('searchForm').dispatchEvent(event)
-    }
+      if (!latestSearch) return;
+      const event = new Event('submit');
+      searchForm.dispatchEvent(event);
+    };
 
+    // Handle new supplier form
     $('addForm').addEventListener("submit", async e => {
-      e.preventDefault()
-      const formData = new FormData(e.target)
-      const body = Object.fromEntries(formData.entries())
-      await fetch("http://localhost:5000/api/suppliers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      })
-      alert("Supplier added!")
-      e.target.reset()
-      fetchSuppliers()
-    })
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const body = Object.fromEntries(formData.entries());
 
-    $('updateForm').addEventListener('submit', async e => {
-      e.preventDefault()
-      const formData = new FormData(e.target)
-      const { _id, ...rest } = Object.fromEntries(formData.entries())
-      await fetch(`http://localhost:5000/api/suppliers/${_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rest)
-      })
-      hideModal()
-      fetchSuppliers()
-      refreshSearch()
-    })
+      try {
+        const res = await fetch("http://localhost:5000/api/suppliers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
 
+        const result = await res.json();
+
+        if (res.status === 409) {
+          showAlert(result.message || "Duplicate supplier.");
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(result.message || "Failed to add supplier.");
+        }
+
+        alert("Supplier added!");
+        e.target.reset();
+        fetchSuppliers();
+
+      } catch (err) {
+        console.error('[addSupplier] Error:', err);
+        showAlert("Server error occurred while adding supplier.");
+      }
+    });
+
+    // Render list of suppliers
     const renderList = (data, targetId, statusElement = null) => {
-      const ul = $(targetId)
+      const ul = $(targetId);
       if (!data.length) {
-        if (statusElement) showMessage(statusElement, 'No suppliers found', false)
-        ul.innerHTML = '<p class="message-text">No suppliers found</p>'
-        return
+        if (statusElement) statusElement.textContent = 'No suppliers found';
+        ul.innerHTML = '<p class="message-text">No suppliers found</p>';
+        return;
       }
 
       ul.innerHTML = data.map(s => `
@@ -178,29 +221,26 @@
             <button class="btn btn-delete" onclick="deleteSupplier('${s._id}')">Delete</button>
           </div>
         </li>
-      `).join('')
-    }
+      `).join('');
+    };
 
-    searchForm.addEventListener("submit", async (e) => {
-      e.preventDefault()
-      latestSearch = $('searchValue').value.trim()
-      if (!latestSearch) return
-      const res = await fetch(`http://localhost:5000/api/suppliers/name/${encodeURIComponent(latestSearch)}`)
+    // Search supplier by name
+    searchForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      latestSearch = $('searchValue').value.trim();
+      if (!latestSearch) return;
 
+      const res = await fetch(`http://localhost:5000/api/suppliers/name/${encodeURIComponent(latestSearch)}`);
       if (!res.ok) {
-        // Handle the case where no suppliers are found (e.g., 404)
         $('searchResults').innerHTML = '<p class="message-text">No suppliers found</p>';
-        if ($('searchStatus')) {
-          $('searchStatus').classList.remove('error'); // You might want to adjust styling
-        }
         return;
       }
 
-      const data = await res.json()
-      renderList(Array.isArray(data) ? data : [data], "searchResults", $('searchStatus'))
-    })
+      const data = await res.json();
+      renderList(Array.isArray(data) ? data : [data], "searchResults", $('searchStatus'));
+    });
 
-    fetchSuppliers()
+    fetchSuppliers();
   </script>
 </body>
 </html>
