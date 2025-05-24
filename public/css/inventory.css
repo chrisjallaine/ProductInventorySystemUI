@@ -42,10 +42,10 @@ h1 {
 /* Three Panel Layout */
 .main-container {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr; /* Center panel slightly wider */
+  grid-template-columns: 1fr 1.5fr 1fr;
   gap: 1.5rem;
   padding: 1.5rem;
-  height: calc(100vh - 100px); /* Adjust based on header height */
+  height: calc(100vh - 100px);
   overflow: hidden;
 }
 
@@ -71,9 +71,9 @@ h1 {
 }
 
 /* Buttons */
-.button-primary, 
+.button-primary,
 button[type="submit"] {
-  background: #3b3b3b;
+  background: #333446;
   color: white;
   padding: 0.4rem 0.8rem;
   border: none;
@@ -85,9 +85,9 @@ button[type="submit"] {
   font-size: 0.85rem;
 }
 
-.button-primary:hover, 
+.button-primary:hover,
 button[type="submit"]:hover {
-  background: #848484;
+  background: #4c4d61;
 }
 
 .btn {
@@ -98,22 +98,23 @@ button[type="submit"]:hover {
   border: none;
   cursor: pointer;
   color: white;
+  background: #333446;
 }
 
 .btn-update {
-  background: #2196F3;
+  background: #333446;
 }
 
 .btn-update:hover {
-  background: #1976D2;
+  background: #4c4d61;
 }
 
 .btn-delete {
-  background: #f44336;
+  background: #333446;
 }
 
 .btn-delete:hover {
-  background: #d32f2f;
+  background: #4c4d61;
 }
 
 /* Sections */
@@ -297,7 +298,7 @@ ul {
   .main-container {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .right-panel {
     grid-column: span 2;
   }
@@ -310,7 +311,7 @@ ul {
     height: auto;
     overflow: visible;
   }
-  
+
   .left-panel,
   .center-panel,
   .right-panel {
@@ -318,9 +319,8 @@ ul {
     overflow-y: visible;
     grid-column: auto;
   }
-  
+
   .list-section {
     height: auto;
   }
 }
-
